@@ -1,15 +1,15 @@
 # Java_Guide
 
-### Java学习总结
+### Java基础及架构学习总结
 
-- Java
+- Java			
   - 基础
   - 容器
   - 并发
   - 锁
   - JVM
 - Spring
-  - Spring IOC
+  - [Spring IOC](./Spring/IOC/SpringIOC.md)
   - Spring AOP
 - Spring Cloud
   - Eureka
@@ -31,3 +31,4 @@
   - Git
   - CI/CD
 - Data Structure
+- Algorithm
