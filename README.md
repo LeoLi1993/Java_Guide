@@ -3,7 +3,7 @@
 ### Java基础及架构学习总结
 
 - Java			
-  - [基础](./Java/Basic)
+  - [基础](#1.1)
 
   - 容器
 
@@ -73,3 +73,9 @@
   ​
 
 - Algorithm
+
+  ​
+
+## <h2 id="1.1">Java基础</h2>
+
+- [Java自定义注解](./Java/Basic/Custom_Annotation.md)
