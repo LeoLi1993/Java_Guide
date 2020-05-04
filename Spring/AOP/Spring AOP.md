@@ -10,10 +10,75 @@ AOP是相对于OOP而言，OOP是传统的面向对象编程，关注主业务�
 
 - 自定义注解，消息异步处理，在controller层的方法上添加自定义注解@EnableAsyncProcess
   - @EnableAsyncProcess
-    - 定义一个切面，切面里面定义切点，该切点的切点表达式去匹配@EnableAsyncProcess，匹配的话就执行增强的通知，我们这里定义的通知类型为环绕通知，增强的逻辑为数据发往RabbitMQ。RabbitMQ是生产者和消费者模型，producer那一方通过设置exchange和routing key发往consumer进行消费。
+    - 定义一个切面，切面里面定义切点，该切点的切点表达式去匹配自定义注解@EnableAsyncProcess，匹配到的话就执行增强的环绕通知，增强的逻辑为数据发往RabbitMQ。RabbitMQ是生产者和消费者模型，producer那一方通过设置消息规则和routing key发往consumer进行消费。
 
-- 权限验证
-  - @PreAuthorized("hasPermision(..)")
+  ```java
+  @Configuration
+  @Import(AsyncProcessMessagePublisher.class)
+  @Aspect
+  public class EnableAsyncProcessAspect
+  {
+      private Logger logger = LoggerFactory.getLogger(getClass());
+
+      @Autowired
+      private AsyncProcessMessagePublisher publisher;
+
+      @Autowired
+      private HttpServletRequest request;
+
+      @Resource(name = "defaultInboundTransactionServiceImpl")
+      private IInboundTransactionService defaultInboundTransactionService;
+
+      @Pointcut("@annotation(com.sap.csc.ems.api.common.annotation.EnableAsyncProcess)")
+      public void pointCut()
+      {
+
+      }
+
+      @Around("pointCut()")
+      public Object requestIntercept(ProceedingJoinPoint pjp) throws Throwable
+      {
+          String mode = EMSHeaderUtil.getHeader(AsyncProcess.X_EMS_REQUEST_MODE, request);
+
+          if (AsyncProcess.REQUEST_MODE_ASYNC.equals(mode))
+          {
+              String xTraceId = EMSHeaderUtil.getHeader(AsyncProcess.X_EMS_TRACE_ID, request);
+
+              Signature signature = pjp.getSignature();
+
+              if (signature instanceof MethodSignature)
+              {
+                  MethodSignature methodSignature = (MethodSignature) signature;
+
+                  EnableAsyncProcess asyncProcess = methodSignature.getMethod().getAnnotation(EnableAsyncProcess.class);
+
+                  if (asyncProcess != null)
+                  {
+                      if (xTraceId != null && xTraceId.length() > 14)
+                      {
+                          logger.error("Max length of x-ems-trace-id is 14 characters");
+                          throw new EMSTechnicalException();
+                      }
+
+                      String transactionGuid = ThreadLocalCache.transactionGuid.get();
+                      if (StringUtils.isBlank(transactionGuid))
+                      {
+                          logger.error("inbound transaction guid is missing.");
+                          throw new EMSTechnicalException();
+                      }
+                      publisher.publishMessage(asyncProcess.exchange(), asyncProcess.routing(), xTraceId, transactionGuid,
+                          new AsyncProcessMessagePayload());
+                      return ApiResponseUtil.getAcceptedApiResponse();
+                  }
+              }
+          }
+          return pjp.proceed();
+      }
+
+  }
+  ```
+  ​
+
 
 ### AOP概念
 
@@ -187,7 +252,7 @@ this(com.sap.leo.test.repository.IndexDao)
 
 ### Spring Introductions
 
-通过注解@DeclareParents来声明引用，意思通过表示式匹配上的class或者是interface它们有新的父类。
+通过注解@DeclareParents来声明引用，意思通过表达式匹配上的class或者是interface，它们有新的父类。
 
 ```java
 //在com.sap.leo.test.repository包及其子包下的接口，它们去实现TestDao
@@ -202,4 +267,69 @@ TestDao testDao = (TestDao) annotationConfigApplicationContext.getBean(IndexDao.
 testDao.say("BBB");
 ```
 
-### Aspect Instantiation Models
+### Aspect Instantiation Models(切面模型/切面实例模型)
+
+默认情况下，切面是单例模式的。当然，我们也可以改变其lifecycle.
+
+- 单例模式
+
+```
+public class Client
+{
+
+	public static void main(String[] args) throws Exception
+	{
+		AnnotationConfigApplicationContext annotationConfigApplicationContext = new AnnotationConfigApplicationContext(AppConfig.class);
+		IndexDao indexDao = annotationConfigApplicationContext.getBean(IndexDao.class);
+		//point cut
+		indexDao.sayTest("ttt");
+		//point cut
+		indexDao.saySomething("", 0);
+	}
+}
+```
+
+```java
+@Component("aspect")
+@Aspect
+public class NotVeryUsefulAspect
+{
+   @Pointcut("within(com.sap.leo.test.service.impl.IndexDaoImpl)")
+   public void testWithin()
+   {
+
+   }
+   @Before("testWithin()")
+   public void before()
+   {
+   System.out.println(this.hashCode());
+   }
+}
+```
+
+```java
+@Service
+public class IndexDaoImpl implements IndexDao
+{
+
+   @Override
+   public void saySomething(String bbb,int aaa)
+   {
+      System.out.println("IndexDaoImpl...");
+   }
+
+   @Override
+   public void sayTest(String abc)
+   {
+      System.out.println(abc);
+   }
+}
+```
+
+output：
+
+![Aspect_Singlton](./Resource/Aspect_Singlton.png)
+
+- 原型模式
+
+  ​
