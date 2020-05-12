@@ -39,7 +39,7 @@
 
 ## Devops
 
-<h4 id="1.1">**Maven**</h4>
+<h4 id="1.1">Maven</h4>
 
 
 
