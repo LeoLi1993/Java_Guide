@@ -129,4 +129,3 @@ Java中如何实现代理？
 
 #### 动态代理
 
-just some test...sdfdsafdsf
