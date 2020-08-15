@@ -4,8 +4,13 @@
 
 - 学习路线
 
+  - [Java](#1.1)
+    - [基础](#1.1.1)
+    - 容器
+    - 并发
+    - JVM
   - Devops（运维相关）
-    - [Maven](#1.1)（5.12-5.18)
+    - [Maven](#2.1)
     - Jenkins
     - Git(5.19-5.25)
     - Prometheus(5.26-5.31)
@@ -26,14 +31,6 @@
   - 数据库
     - Mysql
     - JDBC
-  - Java
-    - [基础](#8.1)
-    - 集合
-    - IO
-    - 线程与并发
-    - 异常
-    - 锁
-    - JVM
 
 - [工作中遇到的难点](#9.1)
 
@@ -41,15 +38,19 @@
 
 ## Devops
 
-<h3 id="1.1">Maven</h3>
+<h3 id="2.1">Maven</h3>
 
 
 
 
 
-## <h3 id="8.1">Java基础</h3>
+## <h3 id="1.1">Java</h3>
+
+<h4 id="1.1.1">基础</h4>
 
 - [Java自定义注解](./Java/Basic/Custom_Annotation.md)
+
+- [ThreadLocal理解](./Java/Basic/ThreadLocal.md)
 
   ​
 
