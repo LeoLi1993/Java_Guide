@@ -197,6 +197,83 @@ Manage And Assign Roles -> Manage Roles
 
 ![](./resource/credentials_binding/jenkins_pull_remote_project_by_ssh.png)
 
+### Jenkins持续集成环境-Maven的配置
+
+在Jenkins集成服务器上，我们需要安装Maven来编译和打包项目。
+
+#### 全局工具配置关联JDK和Maven
+
+Jenkins->Global Tool Configuration ->JDK ->Add JDK
+
+
+
+Jenkins->Global Tool Configuration -> Maven -> Add Maven
+
+![](./resource/config_JDK_Maven/config_Maven.png)
+
+#### 添加Jenkins全局变量
+
+Manage Jenkins -> Configure System -> Global Properties, 添加三个全局变量
+
+JAVA_HOME, MAVEN_HOME, PATH+EXTRA
+
+![](./resource/config_JDK_Maven/config_global_property.png)
+
+#### 测试Maven是否配置成功
+
+我们现在Github上创建一个项目叫做Maven_Test_Project,之后拉取到本地，修改目录结构使之成为Maven项目。
+
+之后通过Jenkins Job里面的Maven配置项去编译构建该Maven工程，看能否成功打包
+
+- 创建一个新的Jenkins Job，源码管理部分选择Git仓库地址以及其认证方式
+
+  ![](./resource/config_JDK_Maven/sourceCode_management.png)
+
+
+- 在构建部分通过Shell脚本构建该Jenkins Job
+
+  ![](./resource/config_JDK_Maven/build_with_shell.png)
+
+![](./resource/config_JDK_Maven/build_with_shell_command.png)
+
+- 点击Build Now,如果项目成功打成Jar包那么证明Maven环境配置成功。
+
+![](./resource/config_JDK_Maven/build_result.png)
+
+### Jenkin持续集成-Apache Tomcat安装
+
+1.去Apache 官网下载Zip Tomcat解压并安装（Windows环境）
+
+2.配置环境变量
+
+![](./resource/config_tomcat/tomcat_path.png)
+
+3.如果在windows环境，直接进入到bin目录下执行./startup.bat
+
+4.查看tomcat是否正常启动：localhost:8080
+
+![](./resource/config_tomcat/tomcat_startup.png)
+
+5.修改tomcat默认8080端口：进入config目录，找到server.xml文件，把8080端口修改为8081.
+
+![](./resource/config_tomcat/update_tomcat_port.png)
+
+6.配置tomcat用户角色权限
+
+- 进入到config目录找到tomcat-user.xml文件
+
+![](./resource/config_tomcat/tomcat_role.png)
+
+7.为了能使刚才配置的用户登录到tomcat，我们需要把tomcat目录下的webapps/manager/META-INF/context.xml内容修改为应许所有ip地址访问。
+
+![](./resource/config_tomcat/context_xml.png)
+
+8.重启tomcat并用创建的用户访问测试
+
+![](./resource/config_tomcat/manager_page.png)
+
+
+
 ## Jenkins构建Maven项目
 
 1.Jenkins项目构建类型
@@ -205,4 +282,97 @@ Manage And Assign Roles -> Manage Roles
 - Maven项目
 - **流水线项目**
 
-每一种类型的构建都能够完成一样的构建过程和结果，只是在操作方式，灵活度等方面有区别。
+每一种类型的构建都能够完成一样的构建过程和结果，只是在操作方式，灵活度等方面有区别。推荐使用pipeline方式，因为灵活度更高。
+
+
+
+#### Jenkins项目构建-自由风格项目构建
+
+下面演示一个自由风格项目来完成项目的集成过程
+
+**拉取代码->编译->打包->部署**
+
+**拉取代码**
+
+- 创建项目
+
+  ![](./resource/freeStyle_demo/freeStyle_project.png)
+
+
+- 源码管理部分配置代码从里面进行拉取
+
+![](./resource/freeStyle_demo/sourceCode_management.png)
+
+- 编译打包
+
+![](./resource/freeStyle_demo/compile_and_build.png)
+
+- 部署
+  1. 把项目部署到远程的Tomcat里面，在这此之前呢我们需要安装Deploy to container插件，通过该插件实现把war包部署到Tomcat服务器。
+
+![](./resource/freeStyle_demo/deploy_to_container.png)
+
+
+
+2. 添加tomcat用户凭证
+
+   ![](./resource/freeStyle_demo/add_user_credential.png)
+
+3.添加构建后的操作
+
+![](./resource/freeStyle_demo/post_build_action.png)
+
+![](./resource/freeStyle_demo/config_tomcat.png)
+
+点击"Build Now"开始构建
+
+查看构建结果
+
+![](./resource/freeStyle_demo/build_result.png)
+
+部署成功之后访问项目：
+
+![](./resource/freeStyle_demo/access_project.png)
+
+### Jenkins项目构建-Maven风格构建
+
+1.安装Maven Integration插件
+
+![](./resource/maven_project/maven_plugin.png)
+
+2.创建Maven项目
+
+![](./resource/maven_project/create_maven_project.png)
+
+3.配置项目
+
+拉取代码和远程部署的过程和自由风格项目一样，只是"构建"部分不同
+
+![](./resource/maven_project/source_code_management.png)
+
+![](./resource/maven_project/build_action.png)
+
+![](./resource/maven_project/deploy_to_container.png)
+
+
+
+#### Jenkins项目构建类型-Pipeline流水线项目构建
+
+1.Pipeline：一套运行在Jenkins上的工作流框架，将原来单个或者多个结点的任务连接起来，实现复杂的流程编排和可视化的工作。
+
+2.如何创建Jenkins Pipeline？
+
+- 它由Groovy脚本实现
+- 支持两种语法，声明式和脚本式的语法
+- 两种创建方法：可以直接在Web UI界面中输入脚本，也可以通过创建一个Jenkinsfile脚本文件放入项目源码库中。（推荐采用源码库进行控制）
+
+3.安装Pipeline插件
+
+![](./resource/pipeline/pipeline_plugin.png)
+
+4.创建声明式Pipeline
+
+![](./resource/pipeline/create_pipeline_job.png)
+
+![](./resource/pipeline/create_simple_declarative_pipeline.png)
+
