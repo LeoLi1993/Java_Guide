@@ -23,7 +23,7 @@ package com.sap.csc.ems.settings.leo.test;
 public class ThreadLocalTest
 {
     ThreadLocal<String> threadLocal = new ThreadLocal<>();
-    private final static int THREAD_NUMBER = 1000;
+    private final static int THREAD_NUMBER = 10;
 
     public String getContent()
     {

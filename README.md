@@ -46,6 +46,8 @@
 
 <h4 id="2.1.1">Redis</h4>
 
+- [Redis详解](./Redis/Redis.md)
+
 <h3>Devops</h3>
 
 <h4>Maven</h4>
