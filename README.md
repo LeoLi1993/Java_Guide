@@ -8,8 +8,10 @@
     - 容器
     - 并发
     - JVM
-  - [Devops](#2.1)
-    - [Maven](#2.1.1)
+  - [缓存](#2.1)
+    - [Redis](#2.1.1)
+  - Devops
+    - Maven
     - Jenkins
     - Git
     - Prometheus
@@ -40,9 +42,15 @@
 - [Java自定义注解](./Java/Basic/Custom_Annotation.md)
 - [ThreadLocal理解](./Java/Basic/ThreadLocal.md)
 
-<h3 id="2.1">Devops</h3>
+<h3 id="2.1">缓存</h3>
 
-<h4 id="2.1.1">Maven</h4>
+<h4 id="2.1.1">Redis</h4>
+
+<h3>Devops</h3>
+
+<h4>Maven</h4>
+
+
 
 <h3 id="9.1">工作中优化过的内容以及难点</h3>
 
