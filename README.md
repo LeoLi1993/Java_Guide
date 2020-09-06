@@ -2,7 +2,7 @@
 
 ## Java基础知识及架构学习总结
 
-- 学习路线
+- [Java对标阿里p7架构师知识点](./Java/Basic/resource/img/p7_Java_Architecture.xmind)
   - [Java](#1.1)
     - [基础](#1.1.1)
     - 容器
