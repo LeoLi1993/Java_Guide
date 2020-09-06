@@ -2,7 +2,7 @@
 
 ## Java基础知识及架构学习总结
 
-- [Java对标阿里p7架构师知识点](https://www.processon.com/view/link/5f5454c4e401fd60bde200ac)
+- [阿里p7架构师知识点](https://www.processon.com/view/link/5f5454c4e401fd60bde200ac)
   - [Java](#1.1)
     - [基础](#1.1.1)
     - 容器
