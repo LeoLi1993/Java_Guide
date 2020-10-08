@@ -1,4 +1,4 @@
-##并发编程
+###并发编程
 
 [toc]
 
@@ -139,7 +139,7 @@ public enum State {
         - 非静态方法：锁的是实例对象。
         - 静态方法：那么你锁的对象是类对象。
 - 字节码层面理解synchronized
-- synchronized的实现是使用**monitorenter和monitorexit**来实现的，monitorenter表明同步代码块开始的位置，monitorexit表明同步代码块结束的位置.当锁的计算器为0的时候表明可以获取锁，获取到锁之后那么锁的计数器会+1，由于synchronized是可重入锁，因此可以它可以获取到同一对象的多把锁，没获取到一次锁，那么锁的计数器就+1,最后它会调用monitorexit去释放锁，没释放一次锁，锁的计数器就-1. 当锁的计数器为0的时候表明锁已经全部释放完。
+- synchronized的实现是使用**monitorenter和monitorexit**来实现的，monitorenter表明同步代码块开始的位置，monitorexit表明同步代码块结束的位置.当锁的计算器为0的时候表明可以获取锁，获取到锁之后那么锁的计数器会+1，由于synchronized是可重入锁，因此可以它可以获取到同一对象的多把锁，每获取到一次锁，那么锁的计数器就+1,最后它会调用monitorexit去释放锁，没释放一次锁，锁的计数器就-1. 当锁的计数器为0的时候表明锁已经全部释放完。
 
 2.Lock
 
@@ -302,3 +302,1062 @@ Process finished with exit code 0
 
 2.通过使用Lock来实现生产者和消费者模型，并且期望实现某个生产者生产了苹果让特定的消费者进行消费。
 
+```java
+package com.example.springbootredis.com.leo;
+
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+public class LockConditionalTest
+{
+    public static void main(String[] args)
+    {
+        PlateDumplate plateDumplate = new PlateDumplate();
+        new Thread(() -> { for (int i = 0; i < 10; i++) plateDumplate.increment(); }, "A").start();
+        new Thread(() -> { for (int i = 0; i < 10; i++) plateDumplate.increment(); }, "B").start();
+        new Thread(() -> { for (int i = 0; i < 10; i++) plateDumplate.decrement(); }, "C").start();
+        new Thread(() -> { for (int i = 0; i < 10; i++) plateDumplate.decrement(); }, "D").start();
+    }
+}
+
+class PlateDumplate
+{
+    private Lock lock = new ReentrantLock(true);
+    Condition condition = lock.newCondition();
+    //盘子上的苹果
+    private int apple = 0;
+
+    public void increment()
+    {
+        try
+        {
+            lock.lock();
+            //有东西那么就叫其他人取，取完之后再放
+            while (apple != 0)
+            {
+                try
+                {
+                    condition.await();
+                }
+                catch (InterruptedException exception)
+                {
+                    exception.printStackTrace();
+                }
+            }
+            apple++;
+            System.out.println(Thread.currentThread().getName() + "=>" + apple);
+            condition.signalAll();
+        }
+        finally
+        {
+            lock.unlock();
+        }
+    }
+
+    public  void decrement()
+    {
+        try
+        {
+            lock.lock();
+            while (apple == 0)
+            {
+                try
+                {
+                    condition.await();;
+                }
+                catch (InterruptedException exception)
+                {
+                    exception.printStackTrace();
+                }
+            }
+            apple--;
+            System.out.println(Thread.currentThread().getName() + "=>" + apple);
+            condition.signalAll();
+        }
+        finally
+        {
+            lock.unlock();
+        }
+    }
+}
+
+```
+
+3.Condition实现精准唤醒
+
+- 我们想实现线程A -> B->C->D->A 的调用顺序
+
+    ```java
+    package com.example.springbootredis.com.leo;
+    
+    import java.util.concurrent.locks.Condition;
+    import java.util.concurrent.locks.Lock;
+    import java.util.concurrent.locks.ReentrantLock;
+    
+    public class ReentrantLockConditionTest
+    {
+        public static void main(String[] args)
+        {
+            Data data = new Data();
+            new Thread(()-> { for(int i=0;i<10;i++) data.printA();},"A").start();
+            new Thread(()-> { for(int i=0;i<10;i++) data.printB();},"B").start();
+            new Thread(()-> { for(int i=0;i<10;i++) data.printC();},"C").start();
+            new Thread(()-> { for(int i=0;i<10;i++) data.printD();},"D").start();
+        }
+    }
+    class Data
+    {
+        private int number = 1; // default is A
+        private Lock lock = new ReentrantLock();
+        private Condition condition1 = lock.newCondition();
+        private Condition condition2 = lock.newCondition();
+        private Condition condition3 = lock.newCondition();
+        private Condition condition4 = lock.newCondition();
+    
+        public void printA()
+        {
+            try
+            {
+                lock.lock();
+                while(number != 1)
+                {
+                    //A should wait
+                    condition1.await();
+                }
+                number = 2;
+                condition2.signal();
+                System.out.println(Thread.currentThread().getName());
+            }
+            catch (InterruptedException exception)
+            {
+                exception.printStackTrace();
+            }
+            finally
+            {
+                lock.unlock();
+            }
+        }
+    
+        public void printB()
+        {
+            try
+            {
+                lock.lock();
+                while(number != 2)
+                {
+                    //A should wait
+                    condition2.await();
+                }
+                number = 3;
+                condition3.signal();
+                System.out.println(Thread.currentThread().getName());
+            }
+            catch (InterruptedException exception)
+            {
+                exception.printStackTrace();
+            }
+            finally
+            {
+                lock.unlock();
+            }
+        }
+    
+        public void printC()
+        {
+            try
+            {
+                lock.lock();
+                while(number != 3)
+                {
+                    //A should wait
+                    condition3.await();
+                }
+                number = 4;
+                condition4.signal();
+                System.out.println(Thread.currentThread().getName());
+            }
+            catch (InterruptedException exception)
+            {
+                exception.printStackTrace();
+            }
+            finally
+            {
+                lock.unlock();
+            }
+        }
+    
+        public void printD()
+        {
+            try
+            {
+                lock.lock();
+                while(number != 4)
+                {
+                    //A should wait
+                    condition4.await();
+                }
+                number = 1;
+                condition1.signal();
+                System.out.println(Thread.currentThread().getName());
+            }
+            catch (InterruptedException exception)
+            {
+                exception.printStackTrace();
+            }
+            finally
+            {
+                lock.unlock();
+            }
+        }
+    }
+    
+    ```
+
+    ```
+    //输出结果
+    A
+    B
+    C
+    D
+    A
+    B
+    C
+    D
+    A
+    B
+    C
+    D
+    .
+    .
+    .
+    ```
+
+    
+
+### CopyOnWriteArrayList
+
+1.多线程环境下，使用ArrayList不是线程安全的，能否使用线程安全的list？
+
+- Vector容器：但是锁定粒度太大，添加、删除、获取元素的操作都加了synchronized关键字，因此性能不好。
+
+    ```java
+     	public synchronized void addElement(E obj) {
+            modCount++;
+            ensureCapacityHelper(elementCount + 1);
+            elementData[elementCount++] = obj;
+        }
+        
+        public synchronized boolean removeElement(Object obj) {
+            modCount++;
+            int i = indexOf(obj);
+            if (i >= 0) {
+                removeElementAt(i);
+                return true;
+            }
+            return false;
+        }
+    	public synchronized E get(int index) {
+            if (index >= elementCount)
+                throw new ArrayIndexOutOfBoundsException(index);
+    
+            return elementData(index);
+        }
+    ```
+
+    
+
+- Collections.synchronizedList(List<T> list)：**方法内部加了synchronized关键字**
+
+    ```java
+    		public void add(int index, E element) {
+                synchronized (mutex) {list.add(index, element);}
+            }
+            public E remove(int index) {
+                synchronized (mutex) {return list.remove(index);}
+            }
+    ```
+
+- CopyOnWriteArrayList：
+
+    ```java
+    public boolean add(E e) {
+            final ReentrantLock lock = this.lock;
+            lock.lock();
+            try {
+                Object[] elements = getArray();
+                int len = elements.length;
+                Object[] newElements = Arrays.copyOf(elements, len + 1);
+                newElements[len] = e;
+                setArray(newElements);
+                return true;
+            } finally {
+                lock.unlock();
+            }
+        }
+    ```
+
+    - 在添加元素时候采用COW设计思想，添加元素的线程会先复制一份array数组中的数据，之后对副本进行操作。操作完之后再把副本的数据赋值给array数组。
+    - 缺点：
+        - 内存占用；会创建副本数组
+        - 不适合写多读少的场景
+        - 不能保证数据实时一致性：只能保证数据最终一致性。
+
+- 为什么CopyOnWriteArrayList比Vector性能好？
+
+    - CopyOnWriteArrayList支持并发读，读操作没有加锁。而Vector所有操作都加了锁。
+
+- 为什么需要一个副本数组？
+
+    - 因为这保证在get的时候每次都能够获取到数据，如果在增删过程中直接修改原来数组的值，高并发场景下可能会出现ConcurrentModificationException，读取不到数据。
+
+### CopyOnWriteArraySet
+
+1.线程安全的Set实现类
+
+2.底层实质上就是调用的CopyOnWriteArrayList
+
+```java
+/**
+     * Creates an empty set.
+     */
+    public CopyOnWriteArraySet() {
+        al = new CopyOnWriteArrayList<E>();
+    }
+```
+
+### ConcurrentHashMap
+
+### Callable
+
+1.创建多线程4种方式
+
+- 继承Thread
+- 实现Runnable接口
+- 实现Callable接口
+- 线程池
+
+2.Runnable和Callable接口区别
+
+- Runnable接口没有返回值，如果说你的任务需要返回值那么使用Runnable。	
+- Runnable接口不会抛出异常
+
+3.Runnable和Callable之间可以互相转换
+
+- 通过引入FutureTask实现二者的转换
+
+    ```java
+    package com.juc;
+    
+    import java.util.concurrent.Callable;
+    import java.util.concurrent.ExecutionException;
+    import java.util.concurrent.FutureTask;
+    
+    public class CallableTest  implements Callable<String>
+    {
+        public static void main(String[] args) throws ExecutionException, InterruptedException
+        {
+            CallableTest callableTest = new CallableTest();
+            FutureTask futureTask = new FutureTask(callableTest);
+            new Thread(futureTask,"AAA").start();;
+            System.out.println(futureTask.get());;
+        }
+    
+        @Override
+        public String call() throws Exception
+        {
+            return "call";
+        }
+    }
+    
+    ```
+
+4.FutureTask
+
+- 实现了RunnableFuture，同时RunnableFuture继承了Runnable和Future接口，因此它可以作为Runnable被线程执行，也可以作为Future得到Callable的返回值。
+
+    ```java
+    public class FutureTask<V> implements RunnableFuture<V> 
+    
+    public interface RunnableFuture<V> extends Runnable, Future<V> {
+        /**
+         * Sets this Future to the result of its computation
+         * unless it has been cancelled.
+         */
+        void run();
+    }
+    ```
+
+- 可以判断任务是否执行完成，或者是否已经取消，并且可以取消任务的执行。
+
+    ```java
+        public boolean isCancelled() {
+                return state >= CANCELLED;
+            }
+    
+        public boolean isDone() {
+            return state != NEW;
+        }
+     	public boolean cancel(boolean mayInterruptIfRunning) {
+            if (!(state == NEW &&
+                  UNSAFE.compareAndSwapInt(this, stateOffset, NEW,
+                      mayInterruptIfRunning ? INTERRUPTING : CANCELLED)))
+                return false;
+            try {    // in case call to interrupt throws exception
+                if (mayInterruptIfRunning) {
+                    try {
+                        Thread t = runner;
+                        if (t != null)
+                            t.interrupt();
+                    } finally { // final state
+                        UNSAFE.putOrderedInt(this, stateOffset, INTERRUPTED);
+                    }
+                }
+            } finally {
+                finishCompletion();
+            }
+            return true;
+        }
+        
+        /**
+         * @throws CancellationException {@inheritDoc}
+         */
+        public V get() throws InterruptedException, ExecutionException {
+            int s = state;
+            if (s <= COMPLETING)
+                s = awaitDone(false, 0L);
+            return report(s);
+        }
+    ```
+
+- get()：获取任务的执行结果，获取到结果之前，一直阻塞。
+
+### CountDownLatch 发令枪
+
+1.发令枪
+
+- 作用：并发场景下，让一个线程或者多个线程等待，直到这些线程完成各自的操作以后才继续往下执行。
+- 常用方法:
+    - countDown：在初始化CountDownLatch的时候需要给定一个计数器，每调用一次countDown计数器就会减一。
+    - await()：调用了await，线程会等待，直到计数器为0，才会继续往下执行。
+    - await(long timeout, TimeUnit unit)：超时等待。
+
+2.调用countDown会等待吗
+
+- 不会，调用await才会等待
+
+3.举例
+
+- 10个运动员比赛，只有当它们都到场了以后才开始比赛
+
+```java
+package com.juc;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+public class CountDownLatchTest
+{
+    public static void main(String[] args) throws InterruptedException
+    {
+        CountDownLatch countDownLatch = new CountDownLatch(10);
+        for (int i = 0; i < 10; i++)
+        {
+            final int temp = i;
+            new Thread(()->{
+                System.out.println(temp+" is ready");
+                countDownLatch.countDown();
+            },String.valueOf(i)).start();
+        }
+        countDownLatch.await();
+        System.out.println("Run!!!");
+    }
+}
+
+```
+
+4.底层是基于AQS来实现的
+
+### CyclicBarrier 循环栅栏
+
+1.循环栅栏：一组线程在达到屏蔽点之前都得等待，如果说达到了屏蔽点，那么所以线程才会继续往下执行。
+
+2.为什么叫循环：因为线程执行完之后，CyclicBarrier可以被重用。
+
+3.怎么重用？可以举个例子吗
+
+- 3个人一起去吃饭，当三个人都到达了餐厅才可以吃饭，等大家都吃饭之后再一起离开
+
+    ```java
+    package com.juc;
+    
+    import org.apache.tomcat.websocket.server.WsHttpUpgradeHandler;
+    
+    import java.util.ArrayList;
+    import java.util.List;
+    import java.util.concurrent.BrokenBarrierException;
+    import java.util.concurrent.CyclicBarrier;
+    import java.util.concurrent.TimeUnit;
+    
+    public class CyclicBarrierTest
+    {
+        public static void main(String[] args) throws BrokenBarrierException, InterruptedException
+        {
+            CyclicBarrier cyclicBarrier = new CyclicBarrier(3);
+    
+            List<Thread> threads = new ArrayList<>();
+            People p1 = new People(cyclicBarrier,"leo");
+            p1.start();
+            People p2 = new People(cyclicBarrier,"maggie");
+            p2.start();
+            People p3 = new People(cyclicBarrier,"wade");
+            p3.start();
+            threads.add(p1);
+            threads.add(p2);
+            threads.add(p3);
+    
+            for(Thread thread:threads)
+            {
+                //等待所有线程跑完主线程才执行结束
+                //join:让当前线程执完
+                thread.join();
+            }
+        }
+    }
+    
+    class People extends Thread
+    {
+        CyclicBarrier cyclicBarrier;
+        public People(CyclicBarrier cyclicBarrier, String name)
+        {
+            super(name);
+            this.cyclicBarrier = cyclicBarrier;
+        }
+    
+        @Override
+        public void run()
+        {
+            System.out.println(Thread.currentThread().getName()+ " comes to hall.");
+            try
+            {
+                //三个人同时到达之后才能开始游戏
+                cyclicBarrier.await();
+            }
+            catch (InterruptedException exception)
+            {
+                exception.printStackTrace();
+            }
+            catch (BrokenBarrierException e)
+            {
+                e.printStackTrace();
+            }
+            System.out.println("start to play.");
+    
+            try
+            {
+                TimeUnit.SECONDS.sleep(3);
+            }
+            catch (InterruptedException exception)
+            {
+                exception.printStackTrace();
+            }
+            
+            System.out.println("Ready to go.");
+            try
+            {
+                //玩完之后准备离开，但是得三个同时走到这里
+                cyclicBarrier.await();
+            }
+            catch (InterruptedException exception)
+            {
+                exception.printStackTrace();
+            }
+            catch (BrokenBarrierException e)
+            {
+                e.printStackTrace();
+            }
+            System.out.println(Thread.currentThread().getName()+" left the hall.");
+        }
+    }
+    
+    ```
+
+4.CyclicBarrier 与 CountDownLatch 区别
+
+- CountDownLatch 是一次性的，CyclicBarrier 是可循环使用的。
+- CountDownLatch执行完await方法之后，所有线程会结束。而CyclicBarrier由于前面线程阻塞了，因此它会继续往下执行。
+- CountDownLatch 基于AQS，而CyclicBarrier 基于ReentrantLock
+
+5.CyclicBarrier屏障原理
+
+- 在CyclicBarrier的内部定义了一个ReentrantLock的对象，然后再利用这个ReentrantLock对象生成一个Condition的对象。每当一个线程调用CyclicBarrier的await方法时，首先把剩余屏障的线程数减1，然后判断剩余屏障数是否为0：如果不是，利用Condition的await方法阻塞当前线程；如果是，首先利用Condition的signalAll方法唤醒所有线程，最后重新生成Generation对象以实现屏障的循环使用。
+
+    ```Java
+    public CyclicBarrier(int parties) {
+            this(parties, null);
+    }
+    
+    public CyclicBarrier(int parties, Runnable barrierAction) {
+            if (parties <= 0) throw new IllegalArgumentException();
+            this.parties = parties; //屏障数
+            this.count = parties;	//屏障数
+            this.barrierCommand = barrierAction;
+    }
+    
+    public int await() throws InterruptedException, BrokenBarrierException {
+            try {
+                return dowait(false, 0L);
+            } catch (TimeoutException toe) {
+                throw new Error(toe); // cannot happen
+            }
+        }
+    
+    
+    private int dowait(boolean timed, long nanos)
+            throws InterruptedException, BrokenBarrierException,
+                   TimeoutException {
+            final ReentrantLock lock = this.lock;
+            lock.lock();
+            try {
+                final Generation g = generation;
+    
+                if (g.broken)
+                    throw new BrokenBarrierException();
+    
+                if (Thread.interrupted()) {
+                    breakBarrier();
+                    throw new InterruptedException();
+                }
+    
+                int index = --count;
+                //计算屏障数是否为0
+                if (index == 0) {  // tripped
+                    boolean ranAction = false;
+                    try {
+                        final Runnable command = barrierCommand;
+                        if (command != null)
+                            command.run();
+                        ranAction = true;
+                        nextGeneration();
+                        return 0;
+                    } finally {
+                        if (!ranAction)
+                            breakBarrier();
+                    }
+                }
+    
+                // loop until tripped, broken, interrupted, or timed out
+                for (;;) {
+                    try {
+                        if (!timed)
+                            trip.await();
+                        else if (nanos > 0L)
+                            nanos = trip.awaitNanos(nanos);
+                    } catch (InterruptedException ie) {
+                        if (g == generation && ! g.broken) {
+                            breakBarrier();
+                            throw ie;
+                        } else {
+                            // We're about to finish waiting even if we had not
+                            // been interrupted, so this interrupt is deemed to
+                            // "belong" to subsequent execution.
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+    
+                    if (g.broken)
+                        throw new BrokenBarrierException();
+    
+                    if (g != generation)
+                        return index;
+    
+                    if (timed && nanos <= 0L) {
+                        breakBarrier();
+                        throw new TimeoutException();
+                    }
+                }
+            } finally {
+                lock.unlock();
+            }
+        }
+    
+    /**
+         * Updates state on barrier trip and wakes up everyone.
+         * Called only while holding lock.
+         */
+        private void nextGeneration() {
+            // signal completion of last generation
+            trip.signalAll(); //唤醒所有阻塞的线程继续执行
+            // set up next generation
+            count = parties; //内存屏蔽书重新赋值
+            generation = new Generation();
+        }
+    ```
+
+### Semaphore
+
+```java
+package com.juc;
+
+import java.util.concurrent.*;
+
+public class SemaphoreTest
+{
+    public static void main(String[] args)
+    {
+        Semaphore semaphore = new Semaphore(2);
+        for (int i = 0; i < 10; i++)
+        {
+            new Thread(() ->
+            {
+                try
+                {
+                    semaphore.acquire();
+                    task();
+                }
+                catch (InterruptedException exception)
+                {
+                    exception.printStackTrace();
+                }
+                finally
+                {
+                    semaphore.release();
+                }
+            }, String.valueOf(i)).start();
+        }
+
+    }
+
+    private static void task()
+    {
+        System.out.println(Thread.currentThread().getName() + " start to run task...");
+        System.out.println(Thread.currentThread().getName() + " is running...");
+        try
+        {
+            TimeUnit.SECONDS.sleep(1);
+        }
+        catch (InterruptedException exception)
+        {
+            exception.printStackTrace();
+        }
+    }
+}
+
+```
+
+1.信号量（令牌）
+
+- 调用acquire来获取令牌，如果获取到，则继续运行，运行完成之后，调用release方法释放令牌供后面的线程使用。
+
+- 如果获取不到，则等待，直到有令牌空闲出来，其才会被唤醒然后获取令牌之后继续运行。
+
+2.每调用一次release方法，就会唤醒一个线程继续执行，如果没有阻塞的线程就不管。
+
+### ReadWriteLock
+
+
+
+### 阻塞队列
+
+1.什么时候使用阻塞队列？
+
+- 线程池
+
+2.7大阻塞队列
+
+- ArrayBlockingQueue：底层采用数组存储
+- LinkedBlockingQueue：底层采用链表存储
+- SynchronousQueue：同步队列，不存放元素
+- PriorityBlockingQueue
+- DelayQueue
+- LinkedTransferQueue
+- LinkedBlockingQueue
+
+3.4组API
+
+| 方式           | 抛出异常 | 有返回值，不抛出异常 | 阻塞等待 | 超时等待                                   |
+| -------------- | -------- | -------------------- | -------- | ------------------------------------------ |
+| 添加           | add      | offer                | put      | offer(E element, long time, TImeUnit unit) |
+| 移除           | remove   | poll                 | take     | poll(long time, TimeUnit unit)             |
+| 获取队列首元素 | element  | peek                 |          |                                            |
+
+```java
+package com.juc;
+
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
+public class BlockingQueue
+{
+    public static void main(String[] args) throws InterruptedException
+    {
+        ArrayBlockingQueue<Integer> arrayBlockingQueue = new ArrayBlockingQueue(3); //指定队列大小
+        arrayBlockingQueue.add(1);
+        arrayBlockingQueue.add(2);
+        arrayBlockingQueue.add(3);
+        //java.lang.IllegalStateException: Queue full
+        //arrayBlockingQueue.add(4);
+
+        System.out.println(arrayBlockingQueue.remove());
+        System.out.println(arrayBlockingQueue.remove());
+        System.out.println(arrayBlockingQueue.remove());
+        //java.util.NoSuchElementException
+        System.out.println(arrayBlockingQueue.remove());
+
+    }
+}
+
+```
+
+```java
+package com.juc;
+
+import java.util.concurrent.ArrayBlockingQueue;
+public class BlockingQueue
+{
+    public static void main(String[] args) throws InterruptedException
+    {
+        ArrayBlockingQueue<Integer> arrayBlockingQueue = new ArrayBlockingQueue(3);
+        System.out.println(arrayBlockingQueue.offer(1));
+        System.out.println(arrayBlockingQueue.offer(2));
+        System.out.println(arrayBlockingQueue.offer(3));
+        System.out.println(arrayBlockingQueue.offer(4));
+
+        System.out.println(arrayBlockingQueue.poll());
+        System.out.println(arrayBlockingQueue.poll());
+        System.out.println(arrayBlockingQueue.poll());
+        System.out.println(arrayBlockingQueue.poll());
+    }
+}
+```
+
+```java
+package com.juc;
+
+import java.util.concurrent.ArrayBlockingQueue;
+public class BlockingQueue
+{
+    public static void main(String[] args) throws InterruptedException
+    {
+        ArrayBlockingQueue<Integer> arrayBlockingQueue = new ArrayBlockingQueue(3);
+        arrayBlockingQueue.put(1);
+        arrayBlockingQueue.put(2);
+        arrayBlockingQueue.put(3);
+
+        System.out.println(arrayBlockingQueue.take());
+        System.out.println(arrayBlockingQueue.take());
+        System.out.println(arrayBlockingQueue.take());
+    }
+}
+```
+
+```java
+package com.juc;
+
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
+public class BlockingQueue
+{
+    public static void main(String[] args) throws InterruptedException
+    {
+        ArrayBlockingQueue<Integer> arrayBlockingQueue = new ArrayBlockingQueue(3);
+        System.out.println(arrayBlockingQueue.offer(1));
+        System.out.println(arrayBlockingQueue.offer(2));
+        System.out.println(arrayBlockingQueue.offer(3));
+        System.out.println(arrayBlockingQueue.offer(4, 2, TimeUnit.SECONDS));
+
+        System.out.println(arrayBlockingQueue.poll());
+        System.out.println(arrayBlockingQueue.poll());
+        System.out.println(arrayBlockingQueue.poll());
+        System.out.println(arrayBlockingQueue.poll(2, TimeUnit.SECONDS));
+
+    }
+}
+```
+
+4.SynchronousQueue
+
+- 一个不存储元素的阻塞队列，每当插入元素的时候，必须要有一个移除元素的操作，不然插入操作会一直阻塞。
+- 用处：创建**可缓存线程池里面用到的阻塞队列就是SynchronousQueue**
+
+```java
+public static ExecutorService newCachedThreadPool() {
+    return new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+                                  60L, TimeUnit.SECONDS,
+                                  new SynchronousQueue<Runnable>());
+}
+```
+
+```JAVA
+package com.juc;
+
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.TimeUnit;
+
+public class BlockingQueueTest
+{
+    public static void main(String[] args) throws InterruptedException
+    {
+        BlockingQueue<Integer> blockingQueue = new SynchronousQueue<>();
+        new Thread(()->{
+            try
+            {
+                blockingQueue.put(1);
+                blockingQueue.put(2);
+                blockingQueue.put(3);
+            }
+            catch (InterruptedException exception)
+            {
+                exception.printStackTrace();
+            }
+        },"t1").start();
+
+        new Thread(()->{
+            try
+            {
+                TimeUnit.SECONDS.sleep(2);
+                System.out.println(Thread.currentThread().getName()+ " " + blockingQueue.take());
+                TimeUnit.SECONDS.sleep(2);
+                System.out.println(Thread.currentThread().getName()+ " " + blockingQueue.take());
+                TimeUnit.SECONDS.sleep(2);
+                System.out.println(Thread.currentThread().getName()+ " " + blockingQueue.take());
+            }
+            catch (InterruptedException exception)
+            {
+                exception.printStackTrace();
+            }
+        },"t2").start();
+    }
+}
+```
+
+### 线程池
+
+1.什么是线程吃
+
+- 它是一种池化技术，我们可以先创建一部分线程放在池中，当有任务来的时候，直接通过池中的线程进行处理。
+
+2.作用：
+
+- 避免频繁的创建和销毁线程所带来的开销，节约系统资源
+- 提高程序相应速度
+- 方便对线程的管理
+
+3.什么时候使用线程池
+
+- 任务量多，但是单个任务处理时间短
+
+4.场景线程池分类
+
+- newCachedThreadPool
+- newFixedThreadPool
+- newSIngleThreadPool
+- newScheduledThreadPool
+
+5.场景线程池的方式
+
+- Executors：不推荐
+- new ThreadPoolExecutor()：推荐，我们可以指定核心线程数和线程池中最大线程数，超时等待时间，采用哪种阻塞队列来存储任务，以及采用何种拒绝策略拒绝任务。
+
+```java
+public ThreadPoolExecutor(int corePoolSize,
+                          int maximumPoolSize,
+                          long keepAliveTime,
+                          TimeUnit unit,
+                          BlockingQueue<Runnable> workQueue,
+                          ThreadFactory threadFactory,
+                          RejectedExecutionHandler handler) 
+```
+
+6.4种拒绝策略
+
+- AbortPolicy  :直接抛出异常     
+- CallerRunsPolicy：哪里来的回哪里去。main线程处理任务
+- DiscardOldestPolicy：丢弃掉阻塞队列中等待最久的一个任务，之后把当前任务重新加入到阻塞队列中
+- DiscardPolicy：直接丢弃当前任务
+
+7.任务处理流程
+
+- 任务来了，交给核心线程处理，如果核心线程处理不过来，就把任务放入阻塞队列。如果某一时刻阻塞队列也满了，还有任务过来，那么就创建非核心线程处理任务，知道线程池中线程数达到最大线程数的限制。如果说还有任务来，那么就采用拒绝策略来处理当前任务。
+
+8.任务提交的方法
+
+- execute：没有返回值，不知道任务是否执行完。
+- submit：有返回值，返回的是Future类型的对象，可以通过该对象得知任务是或处理完。
+
+9.线程池的状态
+
+- RUNNING
+
+- SHUTDOWN
+
+- STOP
+
+- TIDYING
+
+- TERMINATED
+
+    ![](C:\Users\i337040\git\Java_Guide\Java\Concurrency\Resource\img\thread_pool\thread_pool_status.png)
+
+10.shutdown() VS shutdownNow()
+
+- shutdown()：	关闭线程池。不接收新的任务，但是会继续处理完阻塞队列里面的任务。线程池的状态变为SHUTDOWN。
+- shutdownNow()：关闭线程池。立即停止处理当前任务和阻塞队列中的任务，它有返回值，返回的是阻塞队列中的任务。线程池中国的状态变为STOP。
+
+11.如何确定线程池中最大线程数？
+
+- 需要看我们的任务是CPU密集型还是IO密集型，CPU密集型也就是计算为主，IO密集型是IO为主的任务。
+    - CPU密集型：线程池中最大线程数为CPU核心数+1（N+1）。+1的目的是为了充分利用CPU的空闲时间。
+    - IO密集型：2N +1（N是CPU的核心数）
+
+12.线程池里面的线程是如何实现复用的？
+
+- ThreadPoolExecutor里面的runWorker方法，由于使用到是while循环，只要当阻塞队列里面的任务不为空，那么当前线程会一直去阻塞队列里面获取任务进行处理，这样就实现了线程的复用。
+
+```JAVA
+final void runWorker(Worker w) {
+    Thread wt = Thread.currentThread();
+    Runnable task = w.firstTask;
+    w.firstTask = null;
+    w.unlock(); // allow interrupts
+    boolean completedAbruptly = true;
+    try {
+        while (task != null || (task = getTask()) != null) {
+            w.lock();
+            // If pool is stopping, ensure thread is interrupted;
+            // if not, ensure thread is not interrupted.  This
+            // requires a recheck in second case to deal with
+            // shutdownNow race while clearing interrupt
+            if ((runStateAtLeast(ctl.get(), STOP) ||
+                 (Thread.interrupted() &&
+                  runStateAtLeast(ctl.get(), STOP))) &&
+                !wt.isInterrupted())
+                wt.interrupt();
+            try {
+                beforeExecute(wt, task);
+                Throwable thrown = null;
+                try {
+                    task.run();
+                } catch (RuntimeException x) {
+                    thrown = x; throw x;
+                } catch (Error x) {
+                    thrown = x; throw x;
+                } catch (Throwable x) {
+                    thrown = x; throw new Error(x);
+                } finally {
+                    afterExecute(task, thrown);
+                }
+            } finally {
+                task = null;
+                w.completedTasks++;
+                w.unlock();
+            }
+        }
+        completedAbruptly = false;
+    } finally {
+        processWorkerExit(w, completedAbruptly);
+    }
+}
+```
