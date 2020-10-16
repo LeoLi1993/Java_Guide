@@ -1,4 +1,4 @@
-###并发编程
+###	并发编程
 
 [toc]
 
@@ -153,7 +153,7 @@ public enum State {
 
     - ReentranLock也可以实现可选择性通知
 
-        
+      ​    
 
 ### 生产者消费者模型，防止虚拟唤醒
 
@@ -1361,3 +1361,385 @@ final void runWorker(Worker w) {
     }
 }
 ```
+
+### 函数式接口
+
+
+
+1.定义：通过@FunctionalInterface注解，并且接口里面有且仅有一个抽象方法
+
+2.使用：作为方法的参数或者返回值
+
+- 使用函数式接口作为方法的参数
+
+```java
+package com.juc;
+
+@FunctionalInterface
+public interface FunctionInterfaceTest
+{
+    void test(String arg1, String arg2);
+}
+
+```
+
+```java
+package com.juc;
+
+public class FunctionalInterfaceTestImpl implements FunctionInterfaceTest
+{
+    public static void main(String[] args)
+    {
+        FunctionalInterfaceTestImpl functionalInterfaceTest = new FunctionalInterfaceTestImpl();
+        //1. input its implementation
+        functionalInterfaceTest.show(functionalInterfaceTest);
+
+        //2. input no name inner class
+        functionalInterfaceTest.show(new FunctionInterfaceTest(){
+            @Override
+            public void test(String arg1, String arg2)
+            {
+                System.out.println("FunctionInterfaceTest");
+            }
+        });
+        //3. lambda
+        functionalInterfaceTest.show((arg1, arg2)->{
+            System.out.println("lambda");
+        });
+    }
+
+    public void show(FunctionInterfaceTest functionInterfaceTest)
+    {
+        String arg1 = "arg1";
+        String arg2 = "arg2";
+        functionInterfaceTest.test(arg1, arg2);
+    }
+
+    @Override
+    public void test(String arg1, String arg2)
+    {
+        System.out.println(arg1 + arg2);
+    }
+}
+
+```
+
+- 使用函数式接口作为方法的返回值类型
+
+    - 根据字符串进行升序排序
+
+        ```java
+        package com.featrue;
+        
+        import java.util.Arrays;
+        import java.util.Comparator;
+        import java.util.List;
+        
+        public class ComparatorTest
+        {
+            public static void main(String[] args)
+            {
+                String[] list = {"abc","cba","aab","1","3","2"};
+                System.out.println("Before sorting:" + Arrays.toString(list));
+                ComparatorTest comparatorTest = new ComparatorTest();
+                Arrays.sort(list, comparatorTest.getComparator());
+                System.out.println("After sorting:" + Arrays.toString(list));
+        
+            }
+        
+            public Comparator<String> getComparator()
+            {
+                //方式1：通过匿名内部类实现
+                /*return new Comparator<String>()
+                {
+                    @Override
+                    public int compare(String o1, String o2)
+                    {
+                        return o1.compareTo(o2);
+                    }
+                };*/
+                //方式2：通过lambda来实现
+                return (o1, o2) -> {return o1.compareTo(o2);} ;
+                //优化lambda
+             	///return (o1, o2) -> o1.compareTo(o2) ;
+            }
+        }
+        ```
+
+3.Supplier 接口
+
+- 生产型接口，通过get方法来生产数据的。
+
+    ```java
+    package com.featrue;
+    
+    import java.util.function.Supplier;
+    
+    public class SupplierTest
+    {
+        public static void main(String[] args)
+        {
+            SupplierTest supplierTest = new SupplierTest();
+            // way 1:
+            System.out.println(supplierTest.getString(new Supplier<String>()
+            {
+                @Override
+                public String get()
+                {
+                    return "leo";
+                }
+            }));
+    
+            //way 2:
+            System.out.println(supplierTest.getString(() ->
+            {
+                return "LEO";
+            }));
+        }
+    
+        public String getString(Supplier<String> supplier)
+        {
+            return supplier.get();
+        }
+    }
+    ```
+
+    4.Consumer接口
+
+    - 它是一个消费型接口，你给他什么样的数据，它就调用accept方法进行消费。
+
+        ```java
+        package com.featrue;
+        
+        import java.util.function.Consumer;
+        
+        public class ConsumerTest
+        {
+            public static void main(String[] args)
+            {
+                ConsumerTest consumerTest = new ConsumerTest();
+                consumerTest.consume("leo", (name)->{
+                    System.out.println(name);
+                });
+            }
+        
+            public void consume(String name, Consumer<String> consumer)
+            {
+                consumer.accept(name);
+            }
+        }
+        ```
+
+- addThen方法：连接多个Consumer接口并依次进行消费数据
+
+    ```java
+    package com.featrue;
+    
+    import java.util.function.Consumer;
+    
+    public class ConsumerTest
+    {
+        public static void main(String[] args)
+        {
+            ConsumerTest consumerTest = new ConsumerTest();
+            /*consumerTest.consume("leo", (name)->{
+                System.out.println(name);
+            });*/
+    
+            consumerTest.consume("Leo", (name)->{
+                System.out.println(name.toUpperCase());
+            }, (name)->{
+                System.out.println(name.toLowerCase());
+            });
+        }
+    
+        /*public void consume(String name, Consumer<String> consumer)
+        {
+            consumer.accept(name);
+        }*/
+    
+        public void consume(String name, Consumer<String> consumer1, Consumer<String> consumer2)
+        {
+            consumer1.andThen(consumer2).accept(name);
+        }
+    }
+    ```
+
+5.Predicate接口
+
+- java.util.function.Predicate<T>，作用：对某种数据类型的数据进行判断并返回boolean值。
+- 里面包含一个test方法对数据进行判断。
+
+```java
+package com.featrue;
+
+import java.util.function.Predicate;
+
+public class PredicateTest
+{
+    public static void main(String[] args)
+    {
+        PredicateTest predicateTest = new PredicateTest();
+        boolean result = predicateTest.test("Leo", (str)->{
+            if(str.length() > 5)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        });
+        System.out.println(result);
+    }
+
+    public boolean test(String str, Predicate<String> predicate)
+    {
+        return predicate.test(str);
+    }
+}
+```
+
+- Predicate接口里面and方法：表示多个Predicate且的关系
+
+    ```java
+    package com.featrue;
+    
+    import java.util.function.Predicate;
+    
+    public class PredicateTest
+    {
+        public static void main(String[] args)
+        {
+            PredicateTest predicateTest = new PredicateTest();
+            boolean result = predicateTest.testAnd("12345",(str1)->{
+                return str1.length()>3;
+            }, (str2)->{
+                return str2.contains("1");
+            });
+            System.out.println(result);
+        }
+    
+        public boolean testAnd(String str, Predicate<String> predicate1, Predicate<String> predicate2)
+        {
+            return predicate1.and(predicate2).test(str);
+        }
+    }
+    ```
+
+- or以及negate
+
+6.Function接口：用来转换值的类型的
+
+- R apply(T t)：通过传入参数t，返回值R
+- Function andThen(Function function)：上一个Function的结果作为输入，再次进行转换。
+- Function compose(Function function)：后面的Function先执行
+- static Function identity()：静态方法，输入什么就输出什么
+
+```java
+package com.featrue;
+
+import java.util.function.Function;
+
+public class FunctionTest
+{
+    public static void main(String[] args)
+    {
+        String data = "123";
+        FunctionTest functionTest = new FunctionTest();
+        System.out.println(functionTest.convert(data, (str) ->
+        {
+            return Integer.parseInt(str) + 10; 
+        }));
+    }
+
+    public Integer convert(String data, Function<String, Integer> function) //把String转为Integer
+    {
+        return function.apply(data);
+    }
+}
+```
+
+```java
+package com.featrue;
+
+import java.util.function.Function;
+
+public class FunctionTest
+{
+    public static void main(String[] args)
+    {
+        String data = "123";
+        FunctionTest functionTest = new FunctionTest();
+        String finalResult = functionTest.convert(data,
+            (String str1)->{
+                return Integer.parseInt(str1) +10;
+            },
+            (Integer integer1)->{
+                return String.valueOf(integer1)+" haha";
+            });
+        System.out.println(finalResult);
+    }
+
+    public String convert(String data, Function<String, Integer> function1,Function<Integer, String> function2)
+    {
+        return function1.andThen(function2).apply(data);
+    }
+}
+```
+
+```java
+package com.featrue;
+
+import java.util.function.Function;
+
+public class FunctionTest
+{
+    public static void main(String[] args)
+    {
+        Integer data = 123;
+        FunctionTest functionTest = new FunctionTest();
+        Integer finalResult = functionTest.convert(data,
+            (String str1)->{
+                System.out.println("part1 is executing...");
+                str1 = str1.substring(0, 2);
+                return Integer.parseInt(str1) +10;
+            },
+            (Integer integer1)->{
+                System.out.println("part2 is executing...");
+                return String.valueOf(integer1)+" haha";
+            });
+        System.out.println(finalResult);
+    }
+
+    public Integer convert(Integer data, Function<String, Integer> function1,Function<Integer, String> function2)
+    {
+        return function1.compose(function2).apply(data); //function2先执行
+    }
+
+}
+```
+
+​                                                             
+
+
+
+### ForkJoin框架
+
+![](C:\Users\i337040\git\Java_Guide\Java\Java8\resource\img\fork_join_pattern.png)
+
+1.如何充分利用多核CPU，计算很大List中所有整数的和？
+
+- 利用Fork/Join框架来做
+
+2.什么是Fork/Join框架
+
+- 采用map/reduce 分治的设计思想，即将一个大任务拆分成多个小任务处理，最终将小任务的结果进行汇总，从而提高运算效率。
+
+3.ForkJoinPool
+
+- 类似于线程池，只不过线程池里面只有一个阻塞队列存放任务处理，而ForkJoinPool里面可以存放多个双端队列，双端队列中存放任务进行处理。
+- 采用工作窃取模式处理任务，每一个先对应一个双端队列，当某个线程里的队列任务完之后，它会去其他线程的队列尾部去窃取任务处理。这样提高了程序的执行效率。
+- 为什么采用双端队列
+    - 被窃取的线程从队列头部处理任务，而别窃取的任务是从尾部被处理，这样可以避免多线程竞争任务的情况。
+
