@@ -5,10 +5,10 @@
 - [基础](#基础)
     - [wait和sleep区别](#wait和sleep区别)
     - [hashcode和equals](#hashcode和equals)
-    - [CAS,ABA问题如何解决](#CAS,ABA问题如何解决)
-    - [ConcurrentHashMap如何实现并发安全的,HashMap好ConcurrentHashMap底层实现](#ConcurrentHashMap如何实现并发安全的,HashMap好ConcurrentHashMap底层实现)
+    - [CAS，ABA问题如何解决](#CASABA问题如何解决)
+    - [ConcurrentHashMap如何实现并发安全的，HashMap好ConcurrentHashMap底层实现](#ConcurrentHashMap如何实现并发安全的HashMap好ConcurrentHashMap底层实现)
     - [volatile关键字理解](#volatile关键字理解)
-    - [锁的转换过程，自旋锁是什么，乐观锁，悲观锁是什么以及应用场景](#锁的转换过程,自旋锁是什么,乐观锁,悲观锁是什么以及应用场景)
+    - [锁的转换过程，自旋锁是什么，乐观锁，悲观锁是什么以及应用场景](#锁的转换过程自旋锁是什么乐观锁悲观锁是什么以及应用场景)
 - [容器](#容器)
 - [并发](#并发)
 - [JVM](#JVM)
@@ -193,7 +193,7 @@
     - 两个相同的对象他们的hashCode值一定相同
     - hashCode相同的两个对象，他们不一定equals
 
-### CAS,ABA问题如何解决
+### CAS，ABA问题如何解决
 
 - CAS含义以及作用：比较和交换，在多线程环境中，用来保证共享资源的原子操作。
     - 3大参数：内存地址，期望的值，目标值；
@@ -207,7 +207,7 @@
 - 如何解决？
     - JUC 下提供了AtomicStampedReference，它通过变量版本信息保证CAS的正确性。如果说变量的值被修改过，那么它的版本信息也会被修改，只有当变量的值和版本信息同期望的一致，那么CAS才能执行成功。
 
-### ConcurrentHashMap如何实现并发安全的,HashMap好ConcurrentHashMap底层实现
+### ConcurrentHashMap如何实现并发安全的，HashMap好ConcurrentHashMap底层实现
 
 
 
@@ -215,7 +215,7 @@
 
 
 
-### 锁的转换过程,自旋锁是什么,乐观锁,悲观锁是什么以及应用场景
+### 锁的转换过程，自旋锁是什么，乐观锁，悲观锁是什么以及应用场景
 
 
 
