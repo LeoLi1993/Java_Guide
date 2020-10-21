@@ -212,7 +212,7 @@
 
 - 作用：基于CPU缓存模型建立的，用来屏蔽各种硬件和操作系统的内存访问差异，使得Java程序能够在不同平台都能达到一致的并发效果。
 
-- ![](C:\Users\i337040\git\Java_Guide\Interview\zhifubao\resource\img\basic\JMM.png)
+- ![](./resource/img/basic/JMM.png)
 
 - 图解：**共享变量存储在主内存中，每个线程又自己的工作内存，线程的工作内存中保存了主内存共享变量的副本。线程对变量的操作都是在自己的工作内存中，线程不能直接读取主内存的变量。不同线程之间变量值的传递需要通过主内存来实现**
 
@@ -270,9 +270,9 @@
     - 早期通过总线加锁（性能太低）：CPU从主内存读取到数据到高速缓存，会在总线对这个数据加锁，这样其他CPU没法去读或写这份数据，直到当前CPU释放掉锁之后才能去访问数据。这样没有利用到多核CPU并行处理的特性。
     - **MESI缓存一致性协议**：多个CPU从主内存读取到同一份数据，cache line 到各自的高速缓存（工作内存），当其中某个CPU修改了缓存数据，该数据会立刻同步回主内存，其他CPU通过**总线嗅探机制**可以感知到数据变化而将自己缓存里面的数据失效。
 
-    ![](C:\Users\i337040\git\Java_Guide\Interview\zhifubao\resource\img\basic\JMM_automic_operation.png)
+    ![](./resource/img/basic/JMM_automic_operation.png)
     
-    ​			![](C:\Users\i337040\git\Java_Guide\Interview\zhifubao\resource\img\basic\cache_line.png)
+    ​			![](./resource/img/basic/cache_line.png)
 
 ### volatile关键字理解
 
@@ -307,7 +307,7 @@
 
     - **对volatile修饰的内存读和写：需要在他们前后分别加上屏障**
 
-        ![](C:\Users\i337040\git\Java_Guide\Interview\zhifubao\resource\img\basic\memory_barrier.png)
+        ![](./resource/img/basic/memory_barrier.png)
 
 - as if serial：不管指令怎么排序，程序的执行结果一定不会发生改变，就像在单线程环境下执行。
 
@@ -434,7 +434,7 @@ HashMap中根据某个规则移除参数？HashMap的原理，存取值的原理
         - 底层数据结构：Segment数组+HashEntry
         - 高并发如何保证：分段锁的设计思想。插入元素的过程中，会通过其key定位到某个Segment，也就是只会锁在当前Segment，其他线程插入数据到其他的Segment，插入操作并不会被阻塞。从而提高了并发访问的效率。
 
-        ![](C:\Users\i337040\git\Java_Guide\Interview\zhifubao\resource\img\container\jdk1.7_Segment.png)
+        ![](./resource/img/container/jdk1.7_Segment.png)
 
         ```java
         public V put(K key, V value) {
