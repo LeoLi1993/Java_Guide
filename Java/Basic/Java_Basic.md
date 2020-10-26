@@ -3,38 +3,18 @@
 [TOC]
 
 - [Java基础知识](#Java基础知识)
-
-    - [面向对象和面向过程](#面向对象和面向过程)
-
-
-    - [Java面向对象编程三大特性](#Java面向对象编程三大特性)
-
-
+- [面向对象和面向过程](#面向对象和面向过程)
+    -  [Java面向对象编程三大特性](#Java面向对象编程三大特性)
     - [重载和重写的区别](#重载和重写的区别)
-
     - [String StringBuffer 和 StringBuilder 的区别是什么 String 为什么是不可变的](#String StringBuffer 和 StringBuilder 的区别是什么 String 为什么是不可变的)
-
-
     - [自动装箱与拆箱](#自动装箱与拆箱)
-
-
     - [接口和抽象类的区别](#接口和抽象类的区别)
-
     - [==和equals区别](#==和equals区别)
-
     - [hacode和equals](#hacode和equals)
-
     - [Object中常用方法](#Object中常用方法)
-
     - [Java泛型](#Java泛型)
-
     - [Java注解和反射](#Java注解和反射)
-
-    - [Java枚举](#Java枚举)
-
-
 - [J2EE基础知识](#J2EE基础知识)
-
     - [Cookie和Session](#Cookie和Session)
 
     - [Forward和Redirect区别](#Forward和Redirect区别)
@@ -72,7 +52,7 @@
 ### String StringBuffer 和 StringBuilder 的区别是什么 String 为什么是不可变的
 
 - String为什么是不可变的
-    
+  
     - Sting被final修饰，表明String不能被继承。
     
     - 而存放String具体内容的是存放在char数组，而该char数组又是被private和final修饰，final表明引用该char数组地址不可变，而private表明外部不能直接对该String的成员变量直接操作。
@@ -406,6 +386,7 @@
     - E (element) 代表Element
 
 - 类型擦除
+    
     - 编译期间通过泛型对数据类型校验，但是为了兼容老的Java版本，泛型会在运行时期间类型被擦除。
 
 ### Java注解和反射
@@ -434,10 +415,11 @@
 - 反射
 
     - 什么是反射
-        - 在运行时阶段，对于任意一个类/对象，我都能够获取到该类/对象的属性和方法。这种动态的获取类信息的方式称为反射。
-
-    - 获取Class对象的三种方式
-
+        
+- 在运行时阶段，对于任意一个类/对象，我都能够获取到该类/对象的属性和方法。这种动态的获取类信息的方式称为反射。
+        
+- 获取Class对象的三种方式
+    
         - Class.forName("类的全路径名")：讲字节码文件加载进内存，返回class对象。
             - **多用于配置文件**
         - 类的class属性(类名.class)：通过类名的属性class获取
@@ -445,20 +427,20 @@
         - 对象.geClass()：getClass()方法在Object类中定义。
             - 多用于**获取字节码** 的方式
         - 结论
-            - 同一个字节码文件(*.class)在一次程序运行过程中，只会被加载一次。不论通过哪一种方式获取Class对象，都是同一个。
-
-    - Class对象功能
-
-        - 获取成员变量
-
-            - getFields：获取public的成员变量
-
-            - getField(String name)
-
-            - getDeclaredMethods()：获取所有的成员变量
-
-            - ]getDeclaredField(String name)
-
+        - 同一个字节码文件(*.class)在一次程序运行过程中，只会被加载一次。不论通过哪一种方式获取Class对象，都是同一个。
+    
+- Class对象功能
+    
+    - 获取成员变量
+    
+        - getFields：获取public的成员变量
+    
+        - getField(String name)
+    
+        - getDeclaredMethods()：获取所有的成员变量
+    
+        - ]getDeclaredField(String name)
+    
                 ```
                 public static void main(String[] args) throws Exception
                 {
@@ -493,18 +475,18 @@
                     System.out.println(field2.get(person));
                 
                 }
-                ```
-
-        - 获取构造方法
-
-            - getConstructors()
-
-            - getConstructor(Class<?>... parameterTypes)
-
-            - getDeclaredConstructors()
-
-            - getDeclaredConstructor(Class<?>... parameterTypes)
-
+            ```
+    
+    - 获取构造方法
+    
+        - getConstructors()
+    
+        - getConstructor(Class<?>... parameterTypes)
+    
+        - getDeclaredConstructors()
+    
+        - getDeclaredConstructor(Class<?>... parameterTypes)
+    
                 ```java
                 public static void main(String[] args) throws Exception
                 {
@@ -513,18 +495,18 @@
                     Person person1 = constructor.newInstance("Maggie", 25, "A","B","C","D");
                     System.out.println(person1);
                 }
-                ```
-
-        - 获取成员方法
-
-            - getMethods()
-
-            - getMethod(String name, Class<?>... parameterTypes)
-
-            - getDeclaredMethod(String name, Class<?>... parameterTypes)
-
-            - getDeclaredMethods()
-
+            ```
+    
+    - 获取成员方法
+    
+        - getMethods()
+    
+        - getMethod(String name, Class<?>... parameterTypes)
+    
+        - getDeclaredMethod(String name, Class<?>... parameterTypes)
+    
+        - getDeclaredMethods()
+    
                 ```java
                 public static void main(String[] args) throws Exception
                 {
@@ -543,14 +525,14 @@
                         }
                     }
                 }
-                ```
-
-        - 获取类名
-
-            - getName()
-
-        - 应用
-
+            ```
+    
+    - 获取类名
+    
+        - getName()
+    
+    - 应用
+    
             - [自定义注解](./Custom_Annotation.md)
             - JDBC：通过反射来加载驱动
 
