@@ -11,7 +11,7 @@
     - [==和equals区别](#==和equals区别)
     - [hacode和equals](#hacode和equals)
     - [Object中常用方法](#Object中常用方法)
-    - [什么是Java序列化，什么情况下需要序列化](#什么是Java序列化，什么情况下需要序列化)
+    - [什么是Java序列化，什么情况下需要序列化](#什么是Java序列化什么情况下需要序列化)
     - [Java泛型](#Java泛型)
     - [Java注解和反射](#Java注解和反射)
     - [Java枚举](#Java枚举)
