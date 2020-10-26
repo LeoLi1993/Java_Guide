@@ -2,7 +2,7 @@
 
 <!-- MarkdownTOC -->
 
-## [Java基础知识](#Java基础知识)
+- [Java基础知识](#Java基础知识)
 
 - [面向对象和面向过程](#面向对象和面向过程)
 
@@ -33,7 +33,7 @@
 - [Java枚举](#Java枚举)
 
 
-## [J2EE基础知识](#J2EE基础知识)
+- [J2EE基础知识](#J2EE基础知识)
 
 - [Cookie和Session](#Cookie和Session)
 
