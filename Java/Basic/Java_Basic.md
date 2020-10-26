@@ -5,7 +5,7 @@
     -  [Java面向对象编程三大特性](#Java面向对象编程三大特性)
     - [重载和重写的区别](#重载和重写的区别)
     - [String为什么是不可变的](#String为什么是不可变的)
-    - [StringBuffer和StringBuilder 的区别是什么](#StringBuffer和StringBuilder 的区别是什么)
+    - [StringBuffer和StringBuilder的区别是什么](#StringBuffer和StringBuilder的区别是什么)
     - [自动装箱与拆箱](#自动装箱与拆箱)
     - [接口和抽象类的区别](#接口和抽象类的区别)
     - [==和equals区别](#==和equals区别)
@@ -79,7 +79,7 @@
         ```
 
 
-### StringBuffer和StringBuilder 的区别是什么
+### StringBuffer和StringBuilder的区别是什么
 
 - StringBuffer
 
