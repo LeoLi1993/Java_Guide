@@ -1,6 +1,6 @@
 #  基础
 
-[TOC]
+<!-- MarkdownTOC -->
 
 ## [Java基础知识](#Java基础知识)
 
