@@ -1,7 +1,5 @@
 #  基础
 
-[TOC]
-
 - [Java基础知识](#Java基础知识)
 - [面向对象和面向过程](#面向对象和面向过程)
     -  [Java面向对象编程三大特性](#Java面向对象编程三大特性)
@@ -16,11 +14,7 @@
     - [Java注解和反射](#Java注解和反射)
 - [J2EE基础知识](#J2EE基础知识)
     - [Cookie和Session](#Cookie和Session)
-
     - [Forward和Redirect区别](#Forward和Redirect区别)
-
-
-
 
 ## Java基础知识
 
