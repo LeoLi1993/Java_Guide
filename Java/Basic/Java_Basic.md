@@ -10,34 +10,34 @@
 - [Java面向对象编程三大特性](#Java面向对象编程三大特性)
 
 
-- ### [重载和重写的区别](#重载和重写的区别)
+- [重载和重写的区别](#重载和重写的区别)
 
-- ### [String StringBuffer 和 StringBuilder 的区别是什么 String 为什么是不可变的](#String StringBuffer 和 StringBuilder 的区别是什么 String 为什么是不可变的)
-
-
-- ### [自动装箱与拆箱](#自动装箱与拆箱)
+- [String StringBuffer 和 StringBuilder 的区别是什么 String 为什么是不可变的](#String StringBuffer 和 StringBuilder 的区别是什么 String 为什么是不可变的)
 
 
-- ### [接口和抽象类的区别](#接口和抽象类的区别)
+- [自动装箱与拆箱](#自动装箱与拆箱)
 
-- ### [==和equals区别](#==和equals区别)
 
-- ### [hacode和equals](#hacode和equals)
+- [接口和抽象类的区别](#接口和抽象类的区别)
 
-- ### [Object中常用方法](#Object中常用方法)
+- [==和equals区别](#==和equals区别)
 
-- ### [Java泛型](#Java泛型)
+- [hacode和equals](#hacode和equals)
 
-- ### [Java注解和反射](#Java注解和反射)
+- [Object中常用方法](#Object中常用方法)
 
-- ### [Java枚举](#Java枚举)
+- [Java泛型](#Java泛型)
+
+- [Java注解和反射](#Java注解和反射)
+
+- [Java枚举](#Java枚举)
 
 
 ## [J2EE基础知识](#J2EE基础知识)
 
-- ### [Cookie和Session](#Cookie和Session)
+- [Cookie和Session](#Cookie和Session)
 
-- ### [Forward和Redirect区别](#Forward和Redirect区别)
+- [Forward和Redirect区别](#Forward和Redirect区别)
 
 
 
