@@ -88,7 +88,7 @@ public class User
 
 ### 处理注解
 
-我们利用Java反射机制来处理注解
+我们利用**Java反射机制**来处理注解
 
 首先我们得判断我们的对象是否为空，并且对象类型是否声明为@JsonSerializable注解类型。
 
