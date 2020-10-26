@@ -4,8 +4,8 @@
     - [面向对象和面向过程](#面向对象和面向过程)
     -  [Java面向对象编程三大特性](#Java面向对象编程三大特性)
     - [重载和重写的区别](#重载和重写的区别)
-    - [String 为什么是不可变的](#String 为什么是不可变的)
-    - [StringBuffer 和 StringBuilder 的区别是什么](#StringBuffer 和 StringBuilder 的区别是什么)
+    - [String为什么是不可变的](#String为什么是不可变的)
+    - [StringBuffer和StringBuilder 的区别是什么](#StringBuffer和StringBuilder 的区别是什么)
     - [自动装箱与拆箱](#自动装箱与拆箱)
     - [接口和抽象类的区别](#接口和抽象类的区别)
     - [==和equals区别](#==和equals区别)
@@ -45,7 +45,7 @@
 - 重载：在一个类里面，方法名相同，但是参数列表不同。
 - 检验时机：重载是在编译期校验，而重写是在运行期间才校验。
 
-### String 为什么是不可变的
+### String为什么是不可变的
 
 - String为什么是不可变的
 
@@ -79,7 +79,7 @@
         ```
 
 
-### StringBuffer 和 StringBuilder 的区别是什么
+### StringBuffer和StringBuilder 的区别是什么
 
 - StringBuffer
 
@@ -528,9 +528,6 @@
                     }
                 }
             }
-            ```
-            ```
-            
             ```
     
     - 获取类名
