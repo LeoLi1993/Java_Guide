@@ -11,6 +11,7 @@
     - [==和equals区别](#==和equals区别)
     - [hacode和equals](#hacode和equals)
     - [Object中常用方法](#Object中常用方法)
+    - [什么是Java序列化，什么情况下需要序列化](#什么是Java序列化，什么情况下需要序列化)
     - [Java泛型](#Java泛型)
     - [Java注解和反射](#Java注解和反射)
     - [Java枚举](#Java枚举)
@@ -264,6 +265,78 @@
     - 作用：wait & notify & notifyAll用于线程通信，需要在同步代码块中使用。
 - hashCode & equals
 
+### 什么是Java序列化，什么情况下需要序列化
+
+- 什么是Java序列化，反序列化
+
+    - 序列化：Java里面的对象转换成字节流
+    - 反序列化：字节流转成成Java对象
+
+- 作用
+
+    - 通过序列化可以把对象持久化到磁盘，以后需要再次用到该对象可以直接从磁盘里面读取出来即可，避免对象因为程序运行完而消息掉。
+
+- 如何实现Java序列化
+
+    - Java对象实现Serializable接口，Serializalbe接口内部没有任何方法，它只是一个标志，表明实现了该接口的对象可以被序列化和反序列化。
+
+        ```java
+        //序列化
+        Person person = new Person("Leo", 27, "A", "B", "C","D");
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(new File("C:\\Users\\i337040\\Desktop\\Person.txt")));
+        objectOutputStream.writeObject(person);
+        objectOutputStream.close();;
+        
+        //反序列化
+        ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(new File("C:\\Users\\i337040\\Desktop\\Person.txt")));
+        Object object = objectInputStream.readObject();
+        System.out.println(object);
+        objectInputStream.close();
+        ```
+
+- serialVersionUID作用
+
+    - 是序列化前后的唯一标志，序列化和反序列化的serialVersionUID不一致，那么反序列化会失败。
+    - 如果没有写，那么编译器会自动地给它加一个
+        - **我们写代码的时候应该自动的给它加上**
+
+- 两种情况字段不能被序列化
+
+    - static修饰的字段
+    - transient修饰的字段
+        - 比如密码字段是敏感字段，我们想该字段在序列化进行加密。
+
+- 自定义序列化策略
+
+    - readObject()
+    - writeObject()
+
+- 注意事项
+
+    - 父类实现了序列化，**子类自动就实现了序列化，不需要显示指明。**
+
+    - 父类实现了序列化，但是子类不想被序列化，如何实现？
+
+        - 子类中自定义writeObject()和readObject()
+
+            ```java
+            class MySubClass extends Father 
+            {
+                private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+                throw new NotSerializableException(“Can not serialize this class”);
+                }
+                private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+                    throw new NotSerializableException(“Can not serialize this class”);
+                }
+                private void readObjectNoData() throws ObjectStreamException; {
+                    throw new NotSerializableException(“Can not serialize this class”);
+                }
+            }
+            ```
+
+            
+
+
 ### Java泛型
 
 - 作用（JDK1.5引入的）：
@@ -413,8 +486,8 @@
 
     - 什么是反射
     
-- 在运行时阶段，对于任意一个类/对象，我都能够获取到该类/对象的属性和方法。这种动态的获取类信息的方式称为反射。
-  
+        - 在运行时阶段，对于任意一个类/对象，我都能够获取到该类/对象的属性和方法。这种动态的获取类信息的方式称为反射。
+    
 - 获取Class对象的三种方式
   
         - Class.forName("类的全路径名")：讲字节码文件加载进内存，返回class对象。
@@ -538,6 +611,14 @@
     
         - [自定义注解](./Custom_Annotation.md)
         - JDBC：通过反射来加载驱动
+        
+    - 反射优缺点
+    
+        - 优点
+            - 提高程序的灵活性
+        - 缺点
+            - 破坏了程序的封装性：通过反射可以直接获取到对象的私有字段，可能会出现安全性相关问题。
+            - 性能低：因为反射涉及到动态加载的类型，因此JIT不能做优化。
 
 ### Java枚举
 
