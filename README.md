@@ -5,7 +5,8 @@
 - ### [阿里p7架构师知识点](https://www.processon.com/view/link/5f5454c4e401fd60bde200ac)
   
   - Java
-    - [基础](./Java/Basic/Java_Basic.md)
+    - [JavaSE基础](./Java/Basic/JavaSE_Basic.md)
+    - [J2EE基础](./Java/Basic/JavaEE_Basic.md)
     - 容器
     - [并发](./Java/Concurrency/concurrency.md)
     - JVM
@@ -18,7 +19,7 @@
     - Prometheus
   - 框架
     - Spring
-  - 分布式
+  - 7分布式
     - SpringCloud
     - Dubbo
     - Zookeeper

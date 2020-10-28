@@ -1,6 +1,6 @@
 #  基础
 
-- [Java基础知识](#Java基础知识)
+- [JavaSE基础知识](#JavaSE基础知识)
     - [面向对象和面向过程](#面向对象和面向过程)
     -  [Java面向对象编程三大特性](#Java面向对象编程三大特性)
     - [重载和重写的区别](#重载和重写的区别)
@@ -15,11 +15,8 @@
     - [Java泛型](#Java泛型)
     - [Java注解和反射](#Java注解和反射)
     - [Java枚举](#Java枚举)
-- [J2EE基础知识](#J2EE基础知识)
-    - [Cookie和Session](#Cookie和Session)
-    - [Forward和Redirect区别](#Forward和Redirect区别)
 
-## Java基础知识
+## JavaSE基础知识
 
 ### 面向对象和面向过程
 
@@ -622,8 +619,122 @@
 
 ### Java枚举
 
-## J2EE基础知识
+- **枚举(Java5引入)**允许继承类吗？
+    - 不允许
+- 枚举允许实现接口吗？
+    - 可以实现多个接口跟类一样
+- 枚举可以用等号比较吗？
+    - 可以
+- 可以继承枚举吗？
+    - 不可以
+- 枚举可以实现单例模式吗？
+    - 可以
+- 当使用compareTo()比较枚举时，比较的是什么？
+    - 比较的是Enum类ordinal的值
+- 当使用equals()比较枚举的时候，比较的是什么
+    - 两个对象的内存地址
 
-### Cookie和Session
+```java
+package com.basic;
 
-### Forward和Redirect区别
+public enum EnumTest implements InterfaceTest
+{
+    APPLE(1)
+        {
+            @Override
+            public void test1()
+            {
+
+            }
+
+        };
+
+    private int code;
+
+    EnumTest(int code)
+    {
+        this.code = code;
+    }
+
+    public int getCode()
+    {
+        return code;
+    }
+
+    @Override
+    public void test()
+    {
+
+    }
+
+    abstract void test1();
+}
+```
+
+- 源代码经过编译之后生成.class文件，.class文件之后再通过jad工具进行反编译，我们可以查看其反编译的代码
+
+    ```java
+    // Decompiled by Jad v1.5.8g. Copyright 2001 Pavel Kouznetsov.
+    // Jad home page: http://www.kpdus.com/jad.html
+    // Decompiler options: packimports(3) 
+    // Source File Name:   EnumTest.java
+    
+    package com.basic;
+    
+    
+    // Referenced classes of package com.basic:
+    //            InterfaceTest
+    
+    public abstract class EnumTest extends Enum //反编译过后，看到它继承了Enum
+        implements InterfaceTest
+    {
+    
+        public static EnumTest[] values()
+        {
+            return (EnumTest[])$VALUES.clone();
+        }
+    
+        public static EnumTest valueOf(String name)
+        {
+            return (EnumTest)Enum.valueOf(com/basic/EnumTest, name);
+        }
+    
+        private EnumTest(String s, int i, int code)
+        {
+            super(s, i);
+            this.code = code;
+        }
+    
+        public int getCode()
+        {
+            return code;
+        }
+    
+        public void test()
+        {
+        }
+    
+        abstract void test1();
+    
+        EnumTest(String x0, int x1, int x2, _cls1 x3)
+        {
+            this(x0, x1, x2);
+        }
+    
+        public static final EnumTest APPLE;
+        private int code;
+        private static final EnumTest $VALUES[];
+    
+        static 
+        {
+            APPLE = new  Object("APPLE", 0, 1)     /* anonymous class not found */
+        class _anm1 {}
+    
+    ;
+            $VALUES = (new EnumTest[] {
+                APPLE
+            });
+        }
+    }
+    
+    ```
