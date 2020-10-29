@@ -2,8 +2,8 @@
 
 - [J2EE基础知识](#J2EE基础知识)
     - [Servlet相关知识](#Servlet相关知识)
-    - [Web容器(Servelt)两个Map](#Web容器(Servelt)两个Map)
     - [请求转发和重定向](#请求转发和重定向)
+    - [Web容器(Servelt)两个Map](#Web容器(Servelt)两个Map)
     - [Cookie和Session](#Cookie和Session)
     - [Forward和Redirect区别](#Forward和Redirect区别)
 
