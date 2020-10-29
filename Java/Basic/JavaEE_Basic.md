@@ -3,7 +3,7 @@
 - [J2EE基础知识](#J2EE基础知识)
     - [Servlet相关知识](#Servlet相关知识)
     - [请求转发和重定向](#请求转发和重定向)
-    - [Web/Servelt两个Map](#Web/Servelt两个Map)
+    - [Web容器两个Map](#Web容器两个Map)
     - [Cookie和Session](#Cookie和Session)
     - [Forward和Redirect区别](#Forward和Redirect区别)
 
@@ -202,7 +202,7 @@
 
     ​	![](./resource/img/J2EE/Servlet/redirect.png)
 
-### Web/Servelt两个Map
+### Web容器两个Map
 
 - Map One:：Web容器启动的时候会创建servlet实例，第一个Map存放的Key是uri，Value是Servlet实例的引用。
 
