@@ -19,7 +19,7 @@
     - Prometheus
   - 框架
     - Spring
-  - 7分布式
+  - 分布式
     - SpringCloud
     - Dubbo
     - Zookeeper
