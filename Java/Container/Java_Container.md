@@ -1012,7 +1012,7 @@
         - 底层数据结构：Segment数组+HashEntry
         - 高并发如何保证：分段锁的设计思想。插入元素的过程中，会通过其key定位到某个Segment，也就是只会锁在当前Segment，其他线程插入数据到其他的Segment，插入操作并不会被阻塞。从而提高了并发访问的效率。
 
-        ![](C:/Users/i337040/git/Java_Guide/Interview/zhifubao/resource/img/container/jdk1.7_Segment.png)
+        ![](../../Interview/zhifubao/resource/img/container/jdk1.7_Segment.png)
 
         ```java
         public V put(K key, V value) {

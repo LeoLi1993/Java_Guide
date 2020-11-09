@@ -1,68 +1,86 @@
 ###	并发编程
 
-[toc]
+- [进程与线程](#进程与线程)
+- [并发与并行](#并发与并行)
+- [线程状态](#线程状态)
+- [wait/sleep区别](#wait/sleep区别)
+- [Synchronized与Lock](#Synchronized与Lock)
+- [生产者消费者模型，防止虚拟唤醒](#生产者消费者模型防止虚拟唤醒)
+- [CopyOnWriteArrayList](#CopyOnWriteArrayList)
+- [CopyOnWriteArraySet](#CopyOnWriteArraySet)
+- [ConcurrentHashMap](#ConcurrentHashMap)
+- [Callable](#Callable)
+- [CountDownLatch 发令枪](#CountDownLatch 发令枪)
+- [CyclicBarrier 循环栅栏](#CyclicBarrier 循环栅栏)
+- [Semaphore](#Semaphore)
+- [读写锁](#读写锁)
+- [阻塞队列](#阻塞队列)
+- [线程池](#线程池)
+- [函数式接口](#函数式接口)
+- [ForkJoin框架](#ForkJoin框架)
 
 ### 进程与线程
 
-1.进程
+- 进程
+    - **资源分配**的最小单位
 
-- 资源分配的最小单位
+- 线程
+    - **CPU调度**的最小单位
 
-2.线程
+- 总括：比如我们打开一个qq.exe,这里qq就是一个进程。而qq里面发送语音或者消息，这个时候就是通过该进程里面开启的线程来实现的。一个进程里面有一个或者多个线程。
 
-- CPU调度的最小单位
 
-总括：比如我们打开一个qq.exe,这里qq就是一个进程。而qq里面发送语音或者消息，这个时候就是通过该进程里面开启的线程来实现的。一个进程里面有一个或者多个线程。
+- Java默认两个线程：主线程和GC线程。
 
-3.Java里面默认有两个线程：主线程和GC线程。
 
-4.Java可以开启线程吗
+- Java可以开启线程吗
+    - 不可以，它是调用C++来开启线程的。
 
-- 不可以，它是调用C++来开启线程的。
-
-```java
-public synchronized void start() {
-        /**
-         * This method is not invoked for the main method thread or "system"
-         * group threads created/set up by the VM. Any new functionality added
-         * to this method in the future may have to also be added to the VM.
-         *
-         * A zero status value corresponds to state "NEW".
-         */
-        if (threadStatus != 0)
-            throw new IllegalThreadStateException();
-
-        /* Notify the group that this thread is about to be started
-         * so that it can be added to the group's list of threads
-         * and the group's unstarted count can be decremented. */
-        group.add(this);
-
-        boolean started = false;
-        try {
-            start0();
-            started = true;
-        } finally {
-            try {
-                if (!started) {
-                    group.threadStartFailed(this);
+        ```java
+        public synchronized void start() {
+                /**
+                 * This method is not invoked for the main method thread or "system"
+                 * group threads created/set up by the VM. Any new functionality added
+                 * to this method in the future may have to also be added to the VM.
+                 *
+                 * A zero status value corresponds to state "NEW".
+                 */
+                if (threadStatus != 0)
+                    throw new IllegalThreadStateException();
+        
+                /* Notify the group that this thread is about to be started
+                 * so that it can be added to the group's list of threads
+                 * and the group's unstarted count can be decremented. */
+                group.add(this);
+        
+                boolean started = false;
+                try {
+                    start0();
+                    started = true;
+                } finally {
+                    try {
+                        if (!started) {
+                            group.threadStartFailed(this);
+                        }
+                    } catch (Throwable ignore) {
+                        /* do nothing. If start0 threw a Throwable then
+                          it will be passed up the call stack */
+                    }
                 }
-            } catch (Throwable ignore) {
-                /* do nothing. If start0 threw a Throwable then
-                  it will be passed up the call stack */
             }
-        }
-    }
-	
-    private native void start0();
-```
+        	
+            private native void start0();
+        ```
 
-5.并发和并行
+        
+
+### 并发和并行
 
 - 并发：多线程操作同一资源。
 
 - 并行：多核CPU，多线程同时执行。
 
-- 并发编程的本质：充分利用CPU的资源。
+- 并发编程本质：充分利用CPU的资源。
 
     ```java
     public class Test
@@ -75,11 +93,10 @@ public synchronized void start() {
     }
     ```
 
-    
 
-6.线程状态
+### 线程状态
 
-```
+```java
 public enum State {
        
        //新生，线程还没有启动
@@ -102,7 +119,7 @@ public enum State {
     }
 ```
 
-7.wait/sleep区别
+### wait/sleep区别
 
 - 来自不同的类
     - wait()：来自Object
@@ -120,7 +137,7 @@ public enum State {
 
 ### Synchronized与Lock
 
-1.Synchronized
+#### Synchronized
 
 - 多线程环境下控制资源同步访问，同步代码块是一个原子操作
 - 版本：
@@ -132,16 +149,16 @@ public enum State {
         - 锁消除：编译器在编译Java代码的时候，会检测共享资源是否存在竞争锁的情况，如果没有，那么会消除相应的锁。
 - 作用域
     - 静态方法：也就是给当前类加锁，多线程环境竞争资源的情况下，进入同步代码块之前需要获得类对象的锁。
-    - 非静态方法：给当前实例对象加锁，多线程环境竞争资源的情况下，，进入同步代码块之前需要获得实例对象的锁。
+    - 非静态方法：给当前实例对象加锁，多线程环境竞争资源的情况下，进入同步代码块之前需要获得实例对象的锁。
 - 如何确定锁定对象是谁，即锁的对象是谁？
     - 如果显示指定了锁的对象：synchronized(this), synchronized(变量名)那么就表明你加锁的对象是括号里面的对象。
     - 如果是隐式的：比如说修饰非静态方法或者静态方法
         - 非静态方法：锁的是实例对象。
         - 静态方法：那么你锁的对象是类对象。
 - 字节码层面理解synchronized
-- synchronized的实现是使用**monitorenter和monitorexit**来实现的，monitorenter表明同步代码块开始的位置，monitorexit表明同步代码块结束的位置.当锁的计算器为0的时候表明可以获取锁，获取到锁之后那么锁的计数器会+1，由于synchronized是可重入锁，因此可以它可以获取到同一对象的多把锁，每获取到一次锁，那么锁的计数器就+1,最后它会调用monitorexit去释放锁，没释放一次锁，锁的计数器就-1. 当锁的计数器为0的时候表明锁已经全部释放完。
+    - synchronized的实现是使用**monitorenter和monitorexit**来实现的，monitorenter表明同步代码块开始的位置，monitorexit表明同步代码块结束的位置.当锁的计算器为0的时候表明可以获取锁，获取到锁之后那么锁的计数器会+1，由于synchronized是可重入锁，因此可以它可以获取到同一对象的多把锁，每获取到一次锁，那么锁的计数器就+1,最后它会调用monitorexit去释放锁，没释放一次锁，锁的计数器就-1. 当锁的计数器为0的时候表明锁已经全部释放完。
 
-2.Lock
+#### Lock
 
 - 位置：它是在JUC包下的一个接口。常见的实现类有Reentrantlock，ReentrantReadWriteLock.WriteLock, ReentrantReadWriteLock.ReadLock
 
@@ -153,11 +170,10 @@ public enum State {
 
     - ReentranLock也可以实现可选择性通知
 
-      ​    
 
 ### 生产者消费者模型，防止虚拟唤醒
 
-1.场景：有一个生产者一个消费者，一个盘子，盘子上只能够放一个苹果。如果说盘子上没有苹果，那么生产者会在盘子上放苹果，如果有苹果，生产者就不放，让消费者去消费苹果，请用代码实现。
+场景：有一个生产者一个消费者，一个盘子，盘子上只能够放一个苹果。如果说盘子上没有苹果，那么生产者会在盘子上放苹果，如果有苹果，生产者就不放，让消费者去消费苹果，请用代码实现。
 
 - 首先这涉及到线程通信的问题
 
@@ -279,7 +295,7 @@ Process finished with exit code 0
 
 ```
 
-- 但这样有一个问题，也就是当生产者和消费者增多的时候，会出现消费或者生产紊乱的情况，也就是**线程假唤醒**。
+- 但这样有一个问题，也就是当生产者和消费者增多的时候，会出现消费或者生产紊乱的情况，也就是**线程假唤醒。虚假唤醒发生的原因在于CPU是基于时间片进行轮准调度执行的，因此不能值判断一次，需要加上while循环。**
 
 复现：
 
@@ -300,7 +316,8 @@ Process finished with exit code 0
 
 问题原因：if判断肯定有问题，我们应该用while，需要注意的是生产者生产的数量一定要和消费者消费的数量一致，不然会出现死锁。也就是说会有线程等待消费或者等待生产。
 
-2.通过使用Lock来实现生产者和消费者模型，并且期望实现某个生产者生产了苹果让特定的消费者进行消费。
+- 通过使用Lock来实现生产者和消费者模型，并且期望实现某个生产者生产了苹果让特定的消费者进行消费。
+
 
 ```java
 package com.example.springbootredis.com.leo;
@@ -384,9 +401,8 @@ class PlateDumplate
 
 ```
 
-3.Condition实现精准唤醒
-
-- 我们想实现线程A -> B->C->D->A 的调用顺序
+- Condition实现精准唤醒
+    - 我们想实现线程A -> B->C->D->A 的调用顺序
 
     ```java
     package com.example.springbootredis.com.leo;
@@ -533,11 +549,9 @@ class PlateDumplate
     .
     ```
 
-    
-
 ### CopyOnWriteArrayList
 
-1.多线程环境下，使用ArrayList不是线程安全的，能否使用线程安全的list？
+多线程环境下，使用ArrayList不是线程安全的，能否使用**线程安全的list**？
 
 - Vector容器：但是锁定粒度太大，添加、删除、获取元素的操作都加了synchronized关键字，因此性能不好。
 
@@ -595,9 +609,17 @@ class PlateDumplate
                 lock.unlock();
             }
         }
+    
+    public E get(int index) {
+            return this.get(this.getArray(), index);
+        }
+    private E get(Object[] a, int index) {
+            return a[index];
+        }
     ```
 
     - 在添加元素时候采用COW设计思想，添加元素的线程会先复制一份array数组中的数据，之后对副本进行操作。操作完之后再把副本的数据赋值给array数组。
+    - **读不加锁**
     - 缺点：
         - 内存占用；会创建副本数组
         - 不适合写多读少的场景
@@ -615,7 +637,7 @@ class PlateDumplate
 
 1.线程安全的Set实现类
 
-2.底层实质上就是调用的CopyOnWriteArrayList
+2.**底层实质上就是调用的CopyOnWriteArrayList**
 
 ```java
 /**
@@ -628,23 +650,216 @@ class PlateDumplate
 
 ### ConcurrentHashMap
 
+- JDK版本
+
+    - JDK1.7
+
+        - 线程安全
+            - 是
+        - 底层数据结构：Segment数组+HashEntry
+        - 高并发如何保证：分段锁的设计思想。插入元素的过程中，会通过其key定位到某个Segment，也就是只会锁在当前Segment，其他线程插入数据到其他的Segment，插入操作并不会被阻塞。从而提高了并发访问的效率。
+
+        ![](../../interview/zhifubao/resource/img/container/jdk1.7_Segment.png)
+
+        ```java
+        public V put(K key, V value) {
+            	//采用分段锁来控制并发
+                Segment<K,V> s;
+                if (value == null)
+                    throw new NullPointerException();
+                int hash = hash(key);
+                int j = (hash >>> segmentShift) & segmentMask;
+                if ((s = (Segment<K,V>)UNSAFE.getObject          // nonvolatile; recheck
+                     (segments, (j << SSHIFT) + SBASE)) == null) //  in ensureSegment
+                    s = ensureSegment(j);
+                return s.put(key, hash, value, false);
+            }
+            
+            final V put(K key, int hash, V value, boolean onlyIfAbsent) {
+                    HashEntry<K,V> node = tryLock() ? null :
+                        scanAndLockForPut(key, hash, value);
+                    V oldValue;
+                    try {
+                        HashEntry<K,V>[] tab = table;
+                        int index = (tab.length - 1) & hash;
+                        HashEntry<K,V> first = entryAt(tab, index);
+                        for (HashEntry<K,V> e = first;;) {
+                            if (e != null) {
+                                K k;
+                                if ((k = e.key) == key ||
+                                    (e.hash == hash && key.equals(k))) {
+                                    oldValue = e.value;
+                                    if (!onlyIfAbsent) {
+                                        e.value = value;
+                                        ++modCount;
+                                    }
+                                    break;
+                                }
+                                e = e.next;
+                            }
+                            else {
+                                if (node != null)
+                                    node.setNext(first);
+                                else
+                                    node = new HashEntry<K,V>(hash, key, value, first);
+                                int c = count + 1;
+                                if (c > threshold && tab.length < MAXIMUM_CAPACITY)
+                                    rehash(node);
+                                else
+                                    setEntryAt(tab, index, node);
+                                ++modCount;
+                                count = c;
+                                oldValue = null;
+                                break;
+                            }
+                        }
+                    } finally {
+                        unlock();
+                    }
+                    return oldValue;
+                }
+        
+        public V get(Object key) {
+                Segment<K,V> s; // manually integrate access methods to reduce overhead
+                HashEntry<K,V>[] tab;
+                int h = hash(key);
+                long u = (((h >>> segmentShift) & segmentMask) << SSHIFT) + SBASE;
+                if ((s = (Segment<K,V>)UNSAFE.getObjectVolatile(segments, u)) != null &&
+                    (tab = s.table) != null) {
+                    for (HashEntry<K,V> e = (HashEntry<K,V>) UNSAFE.getObjectVolatile
+                             (tab, ((long)(((tab.length - 1) & h)) << TSHIFT) + TBASE);
+                         e != null; e = e.next) {
+                        K k;
+                        if ((k = e.key) == key || (e.hash == h && key.equals(k)))
+                            return e.value;
+                    }
+                }
+                return null;
+            }
+        ```
+
+        - 并发度：默认是16
+
+        - put操作流程：
+
+            - 尝试获取锁，如果没有获取到锁那么就自旋获取锁，如果说达到指定次数之后（多核处理器是自旋64次，如果单核的话就自旋1次），还没有获取到锁当前线程就会阻塞。获取到锁就会执行插入元素操作。
+
+        - get操作：
+
+            - 通过key定位到具体的Segment，再通过一次hash就可以地位到具体元素。**get操作效率很高，因为它不需要加锁**
+
+    - JDK1.8
+
+        - 摒弃了分段锁的设计思想，采用了CAS和Synchronized来控制并发。
+
+        - 底层数据结构：数组+链表+红黑树
+
+        - **为什么要摒弃分段锁**
+
+            - 分段会内存不连续，内存碎片化，浪费了内存空间
+            - 锁粒度更小，**JDK1.7要锁住某个Segment，而JDK1.8只需要锁住单个结点，提高了并发访问效率。**
+
+        - **为什么用Synchronized而不采用JDK1.7里面的ReentrantLock**
+
+            - ​	JDK1.6以后对Synchronized进行了优化，引入了偏向锁，轻量级锁，自旋锁，锁粗化，锁消除等等优化技术对JVM锁进行了优化，大大提高了Synchronized锁的效率。
+
+                ```java
+                final V putVal(K key, V value, boolean onlyIfAbsent) {
+                    if (key != null && value != null) {
+                        int hash = spread(key.hashCode());
+                        int binCount = 0;
+                        ConcurrentHashMap.Node[] tab = this.table;
+                
+                        while(true) {
+                            int n;
+                            while(tab == null || (n = tab.length) == 0) {
+                                tab = this.initTable();
+                            }
+                
+                            ConcurrentHashMap.Node f;
+                            int i;
+                            if ((f = tabAt(tab, i = n - 1 & hash)) == null) {
+                                if (casTabAt(tab, i, (ConcurrentHashMap.Node)null, new ConcurrentHashMap.Node(hash, key, value, (ConcurrentHashMap.Node)null))) {
+                                    break;
+                                }
+                            } else {
+                                int fh;
+                                if ((fh = f.hash) == -1) {
+                                    tab = this.helpTransfer(tab, f);
+                                } else {
+                                    V oldVal = null;
+                                    synchronized(f) {
+                                        if (tabAt(tab, i) == f) {
+                                            if (fh < 0) {
+                                                if (f instanceof ConcurrentHashMap.TreeBin) {
+                                                    binCount = 2;
+                                                    ConcurrentHashMap.TreeNode p;
+                                                    if ((p = ((ConcurrentHashMap.TreeBin)f).putTreeVal(hash, key, value)) != null) {
+                                                        oldVal = p.val;
+                                                        if (!onlyIfAbsent) {
+                                                            p.val = value;
+                                                        }
+                                                    }
+                                                }
+                                            } else {
+                                                label103: {
+                                                    binCount = 1;
+                
+                                                    ConcurrentHashMap.Node e;
+                                                    Object ek;
+                                                    for(e = f; e.hash != hash || (ek = e.key) != key && (ek == null || !key.equals(ek)); ++binCount) {
+                                                        ConcurrentHashMap.Node<K, V> pred = e;
+                                                        if ((e = e.next) == null) {
+                                                            pred.next = new ConcurrentHashMap.Node(hash, key, value, (ConcurrentHashMap.Node)null);
+                                                            break label103;
+                                                        }
+                                                    }
+                
+                                                    oldVal = e.val;
+                                                    if (!onlyIfAbsent) {
+                                                        e.val = value;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                
+                                    if (binCount != 0) {
+                                        if (binCount >= 8) {
+                                            this.treeifyBin(tab, i);
+                                        }
+                
+                                        if (oldVal != null) {
+                                            return oldVal;
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                
+                        this.addCount(1L, binCount);
+                        return null;
+                    } else {
+                        throw new NullPointerException();
+                    }
+                }
+                ```
+
 ### Callable
 
-1.创建多线程4种方式
+- 创建多线程4种方式
+    - 继承Thread
+    - 实现Runnable接口
+    - 实现Callable接口
+    - 线程池
 
-- 继承Thread
-- 实现Runnable接口
-- 实现Callable接口
-- 线程池
+- Runnable和Callable接口区别
+    - Runnable接口没有返回值，如果说你的任务需要返回值那么使用Runnable。	
+    - Runnable接口不会抛出异常
 
-2.Runnable和Callable接口区别
-
-- Runnable接口没有返回值，如果说你的任务需要返回值那么使用Runnable。	
-- Runnable接口不会抛出异常
-
-3.Runnable和Callable之间可以互相转换
-
-- 通过引入FutureTask实现二者的转换
+- Runnable和Callable之间可以互相转换
+    - 通过引入FutureTask实现二者的转换
 
     ```java
     package com.juc;
@@ -672,9 +887,8 @@ class PlateDumplate
     
     ```
 
-4.FutureTask
-
-- 实现了RunnableFuture，同时RunnableFuture继承了Runnable和Future接口，因此它可以作为Runnable被线程执行，也可以作为Future得到Callable的返回值。
+- FutureTask
+    - 实现了RunnableFuture，同时RunnableFuture继承了Runnable和Future接口，因此它可以作为Runnable被线程执行，也可以作为Future得到Callable的返回值。
 
     ```java
     public class FutureTask<V> implements RunnableFuture<V> 
@@ -688,7 +902,7 @@ class PlateDumplate
     }
     ```
 
-- 可以判断任务是否执行完成，或者是否已经取消，并且可以取消任务的执行。
+    - **可以判断任务是否执行完成，或者是否已经取消，并且可以取消任务的执行。**
 
     ```java
         public boolean isCancelled() {
@@ -730,63 +944,59 @@ class PlateDumplate
         }
     ```
 
-- get()：获取任务的执行结果，获取到结果之前，一直阻塞。
+    - get()：获取任务的执行结果，获取到结果之前，一直阻塞。
 
 ### CountDownLatch 发令枪
 
-1.发令枪
+- 发令枪
+    - 作用：并发场景下，让一个线程或者多个线程等待，直到这些线程完成各自的操作以后才继续往下执行。
+    - 常用方法:
+        - countDown：在初始化CountDownLatch的时候需要给定一个计数器，每调用一次countDown计数器就会减一。
+        - await()：调用了await，线程会等待，直到计数器为0，才会继续往下执行。
+        - await(long timeout, TimeUnit unit)：超时等待。
 
-- 作用：并发场景下，让一个线程或者多个线程等待，直到这些线程完成各自的操作以后才继续往下执行。
-- 常用方法:
-    - countDown：在初始化CountDownLatch的时候需要给定一个计数器，每调用一次countDown计数器就会减一。
-    - await()：调用了await，线程会等待，直到计数器为0，才会继续往下执行。
-    - await(long timeout, TimeUnit unit)：超时等待。
+- 调用countDown会等待吗
+    - 不会，调用await才会等待
+- 底层是基于AQS来实现的
 
-2.调用countDown会等待吗
+- 举例
+    - 10个运动员比赛，只有当它们都到场了以后才开始比赛
 
-- 不会，调用await才会等待
-
-3.举例
-
-- 10个运动员比赛，只有当它们都到场了以后才开始比赛
-
-```java
-package com.juc;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-public class CountDownLatchTest
-{
-    public static void main(String[] args) throws InterruptedException
-    {
-        CountDownLatch countDownLatch = new CountDownLatch(10);
-        for (int i = 0; i < 10; i++)
+        ```java
+        package com.juc;
+        
+        import java.util.concurrent.CountDownLatch;
+        import java.util.concurrent.TimeUnit;
+        
+        public class CountDownLatchTest
         {
-            final int temp = i;
-            new Thread(()->{
-                System.out.println(temp+" is ready");
-                countDownLatch.countDown();
-            },String.valueOf(i)).start();
+            public static void main(String[] args) throws InterruptedException
+            {
+                CountDownLatch countDownLatch = new CountDownLatch(10);
+                for (int i = 0; i < 10; i++)
+                {
+                    final int temp = i;
+                    new Thread(()->{
+                        System.out.println(temp+" is ready");
+                        countDownLatch.countDown();
+                    },String.valueOf(i)).start();
+                }
+                countDownLatch.await();
+                System.out.println("Run!!!");
+            }
         }
-        countDownLatch.await();
-        System.out.println("Run!!!");
-    }
-}
-
-```
-
-4.底层是基于AQS来实现的
+        ```
 
 ### CyclicBarrier 循环栅栏
 
-1.循环栅栏：一组线程在达到屏蔽点之前都得等待，如果说达到了屏蔽点，那么所以线程才会继续往下执行。
+- 循环栅栏：一组线程在达到屏蔽点之前都得等待，如果说达到了屏蔽点，那么所以线程才会继续往下执行。
+    - await()
 
-2.为什么叫循环：因为线程执行完之后，CyclicBarrier可以被重用。
+- 为什么叫循环：因为线程执行完之后，CyclicBarrier可以被重用。
 
-3.怎么重用？可以举个例子吗
 
-- 3个人一起去吃饭，当三个人都到达了餐厅才可以吃饭，等大家都吃饭之后再一起离开
+- 怎么重用？可以举个例子吗
+    - 3个人一起去吃饭，当三个人都到达了餐厅才可以吃饭，等大家都吃饭之后再一起离开
 
     ```java
     package com.juc;
@@ -882,15 +1092,13 @@ public class CountDownLatchTest
     
     ```
 
-4.CyclicBarrier 与 CountDownLatch 区别
+- CyclicBarrier 与 CountDownLatch 区别
+    - CountDownLatch 是一次性的，CyclicBarrier 是可循环使用的。一个是比赛，一个是训练。
+    - **CountDownLatch执行完await方法之后，所有线程会结束**。而CyclicBarrier由于前面线程阻塞了，因此它会继续往下执行。
+    - **CountDownLatch 基于AQS，而CyclicBarrier 基于ReentrantLock**
 
-- CountDownLatch 是一次性的，CyclicBarrier 是可循环使用的。
-- CountDownLatch执行完await方法之后，所有线程会结束。而CyclicBarrier由于前面线程阻塞了，因此它会继续往下执行。
-- CountDownLatch 基于AQS，而CyclicBarrier 基于ReentrantLock
-
-5.CyclicBarrier屏障原理
-
-- 在CyclicBarrier的内部定义了一个ReentrantLock的对象，然后再利用这个ReentrantLock对象生成一个Condition的对象。每当一个线程调用CyclicBarrier的await方法时，首先把剩余屏障的线程数减1，然后判断剩余屏障数是否为0：如果不是，利用Condition的await方法阻塞当前线程；如果是，首先利用Condition的signalAll方法唤醒所有线程，最后重新生成Generation对象以实现屏障的循环使用。
+- CyclicBarrier屏障原理
+    - 在CyclicBarrier的内部定义了一个ReentrantLock的对象，然后再利用这个ReentrantLock对象生成一个Condition的对象。每当一个线程调用CyclicBarrier的await方法时，首先把剩余屏障的线程数减1，然后判断剩余屏障数是否为0：如果不是，利用Condition的await方法阻塞当前线程；如果是，首先利用Condition的signalAll方法唤醒所有线程，最后重新生成Generation对象以实现屏障的循环使用。
 
     ```Java
     public CyclicBarrier(int parties) {
@@ -996,84 +1204,82 @@ public class CountDownLatchTest
 
 ### Semaphore
 
-```java
-package com.juc;
+- 信号量（令牌）
+    - 调用acquire来获取令牌，如果获取到，则继续运行，运行完成之后，调用release方法释放令牌供后面的线程使用。
 
-import java.util.concurrent.*;
+    - 如果获取不到，则等待，直到有令牌空闲出来，其才会被唤醒然后获取令牌之后继续运行。
 
-public class SemaphoreTest
-{
-    public static void main(String[] args)
+- 每调用一次release方法，就会唤醒一个线程继续执行，如果没有阻塞的线程就不管。
+
+    ```java
+    package com.juc;
+    
+    import java.util.concurrent.*;
+    
+    public class SemaphoreTest
     {
-        Semaphore semaphore = new Semaphore(2);
-        for (int i = 0; i < 10; i++)
+        public static void main(String[] args)
         {
-            new Thread(() ->
+            Semaphore semaphore = new Semaphore(2);
+            for (int i = 0; i < 10; i++)
             {
-                try
+                new Thread(() ->
                 {
-                    semaphore.acquire();
-                    task();
-                }
-                catch (InterruptedException exception)
-                {
-                    exception.printStackTrace();
-                }
-                finally
-                {
-                    semaphore.release();
-                }
-            }, String.valueOf(i)).start();
+                    try
+                    {
+                        semaphore.acquire();
+                        task();
+                    }
+                    catch (InterruptedException exception)
+                    {
+                        exception.printStackTrace();
+                    }
+                    finally
+                    {
+                        semaphore.release();
+                    }
+                }, String.valueOf(i)).start();
+            }
+    
         }
-
-    }
-
-    private static void task()
-    {
-        System.out.println(Thread.currentThread().getName() + " start to run task...");
-        System.out.println(Thread.currentThread().getName() + " is running...");
-        try
+    
+        private static void task()
         {
-            TimeUnit.SECONDS.sleep(1);
-        }
-        catch (InterruptedException exception)
-        {
-            exception.printStackTrace();
+            System.out.println(Thread.currentThread().getName() + " start to run task...");
+            System.out.println(Thread.currentThread().getName() + " is running...");
+            try
+            {
+                TimeUnit.SECONDS.sleep(1);
+            }
+            catch (InterruptedException exception)
+            {
+                exception.printStackTrace();
+            }
         }
     }
-}
+    ```
 
-```
+    
 
-1.信号量（令牌）
+### 读写锁
 
-- 调用acquire来获取令牌，如果获取到，则继续运行，运行完成之后，调用release方法释放令牌供后面的线程使用。
-
-- 如果获取不到，则等待，直到有令牌空闲出来，其才会被唤醒然后获取令牌之后继续运行。
-
-2.每调用一次release方法，就会唤醒一个线程继续执行，如果没有阻塞的线程就不管。
-
-### ReadWriteLock
-
-
+- 
 
 ### 阻塞队列
 
-1.什么时候使用阻塞队列？
+- 什么时候使用阻塞队列？
+    - 线程池
 
-- 线程池
+- 7大阻塞队列
+    - ArrayBlockingQueue：底层采用数组存储
+    - LinkedBlockingQueue：底层采用链表存储
+    - SynchronousQueue：同步队列，不存放元素
+    - PriorityBlockingQueue
+    - DelayQueue
+    - LinkedTransferQueue
+    - LinkedBlockingQueue
 
-2.7大阻塞队列
-
-- ArrayBlockingQueue：底层采用数组存储
-- LinkedBlockingQueue：底层采用链表存储
-- SynchronousQueue：同步队列，不存放元素
-- PriorityBlockingQueue
-- DelayQueue
-- LinkedTransferQueue
-- LinkedBlockingQueue
-
-3.4组API
+- 4组API
 
 | 方式           | 抛出异常 | 有返回值，不抛出异常 | 阻塞等待 | 超时等待                                   |
 | -------------- | -------- | -------------------- | -------- | ------------------------------------------ |
@@ -1176,10 +1382,9 @@ public class BlockingQueue
 }
 ```
 
-4.SynchronousQueue
-
-- 一个不存储元素的阻塞队列，每当插入元素的时候，必须要有一个移除元素的操作，不然插入操作会一直阻塞。
-- 用处：创建**可缓存线程池里面用到的阻塞队列就是SynchronousQueue**
+- SynchronousQueue
+    - 一个不存储元素的阻塞队列，每当插入元素的时候，必须要有一个移除元素的操作，不然插入操作会一直阻塞。
+    - 用处：创建**可缓存线程池里面用到的阻塞队列就是SynchronousQueue**
 
 ```java
 public static ExecutorService newCachedThreadPool() {
@@ -1235,31 +1440,26 @@ public class BlockingQueueTest
 
 ### 线程池
 
-1.什么是线程池
+- 什么是线程池
+    - 它是一种池化技术，我们可以先创建一部分线程放在池中，当有任务来的时候，直接通过池中的线程进行处理。
 
-- 它是一种池化技术，我们可以先创建一部分线程放在池中，当有任务来的时候，直接通过池中的线程进行处理。
+- 作用：
+    - 避免频繁的创建和销毁线程所带来的开销，节约系统资源
+    - 提高程序响应速度
+    - 方便对线程的管理
 
-2.作用：
+- 什么时候使用线程池
+    - 任务量多，但是单个任务处理时间短
 
-- 避免频繁的创建和销毁线程所带来的开销，节约系统资源
-- 提高程序相应速度
-- 方便对线程的管理
+- 场景线程池分类
+    - newCachedThreadPool
+    - newFixedThreadPool
+    - newSIngleThreadPool
+    - newScheduledThreadPool
 
-3.什么时候使用线程池
-
-- 任务量多，但是单个任务处理时间短
-
-4.场景线程池分类
-
-- newCachedThreadPool
-- newFixedThreadPool
-- newSIngleThreadPool
-- newScheduledThreadPool
-
-5.场景线程池的方式
-
-- Executors：不推荐
-- new ThreadPoolExecutor()：推荐，我们可以指定核心线程数和线程池中最大线程数，超时等待时间，采用哪种阻塞队列来存储任务，以及采用何种拒绝策略拒绝任务。
+- 场景线程池的方式
+    - Executors：不推荐
+    - new ThreadPoolExecutor()：推荐，我们可以指定核心线程数和线程池中最大线程数，超时等待时间，采用哪种阻塞队列来存储任务，以及采用何种拒绝策略拒绝任务。
 
 ```java
 public ThreadPoolExecutor(int corePoolSize,
@@ -1271,50 +1471,43 @@ public ThreadPoolExecutor(int corePoolSize,
                           RejectedExecutionHandler handler) 
 ```
 
-6.4种拒绝策略
+- 4种拒绝策略
+    - AbortPolicy  :直接抛出异常     
+    - CallerRunsPolicy：哪里来的回哪里去。main线程处理任务
+    - DiscardOldestPolicy：丢弃掉阻塞队列中等待最久的一个任务，之后把当前任务重新加入到阻塞队列中
+    - DiscardPolicy：直接丢弃当前任务
 
-- AbortPolicy  :直接抛出异常     
-- CallerRunsPolicy：哪里来的回哪里去。main线程处理任务
-- DiscardOldestPolicy：丢弃掉阻塞队列中等待最久的一个任务，之后把当前任务重新加入到阻塞队列中
-- DiscardPolicy：直接丢弃当前任务
+- 任务处理流程
+    - 任务来了，交给核心线程处理，如果核心线程处理不过来，就把任务放入阻塞队列。如果某一时刻阻塞队列也满了，还有任务过来，那么就创建非核心线程处理任务，知道线程池中线程数达到最大线程数的限制。如果说还有任务来，那么就采用拒绝策略来处理当前任务。
 
-7.任务处理流程
+- 任务提交的方法
+    - execute：没有返回值，不知道任务是否执行完。
+    - submit：有返回值，返回的是Future类型的对象，可以通过该对象得知任务是或处理完。
 
-- 任务来了，交给核心线程处理，如果核心线程处理不过来，就把任务放入阻塞队列。如果某一时刻阻塞队列也满了，还有任务过来，那么就创建非核心线程处理任务，知道线程池中线程数达到最大线程数的限制。如果说还有任务来，那么就采用拒绝策略来处理当前任务。
+- 线程池的状态
+    - RUNNING
 
-8.任务提交的方法
+    - SHUTDOWN
 
-- execute：没有返回值，不知道任务是否执行完。
-- submit：有返回值，返回的是Future类型的对象，可以通过该对象得知任务是或处理完。
+    - STOP
 
-9.线程池的状态
+    - TIDYING
 
-- RUNNING
-
-- SHUTDOWN
-
-- STOP
-
-- TIDYING
-
-- TERMINATED
+    - TERMINATED
 
     ![](C:\Users\i337040\git\Java_Guide\Java\Concurrency\Resource\img\thread_pool\thread_pool_status.png)
 
-10.shutdown() VS shutdownNow()
+- shutdown() VS shutdownNow()
+    - shutdown()：	关闭线程池。不接收新的任务，但是会继续处理完阻塞队列里面的任务。线程池的状态变为SHUTDOWN。
+    - shutdownNow()：关闭线程池。立即停止处理当前任务和阻塞队列中的任务，它有返回值，返回的是阻塞队列中的任务。线程池中国的状态变为STOP。
 
-- shutdown()：	关闭线程池。不接收新的任务，但是会继续处理完阻塞队列里面的任务。线程池的状态变为SHUTDOWN。
-- shutdownNow()：关闭线程池。立即停止处理当前任务和阻塞队列中的任务，它有返回值，返回的是阻塞队列中的任务。线程池中国的状态变为STOP。
-
-11.如何确定线程池中最大线程数？
-
-- 需要看我们的任务是CPU密集型还是IO密集型，CPU密集型也就是计算为主，IO密集型是IO为主的任务。
+- 如何确定线程池中最大线程数？
+    - 需要看我们的任务是CPU密集型还是IO密集型，CPU密集型也就是计算为主，IO密集型是IO为主的任务。
     - CPU密集型：线程池中最大线程数为CPU核心数+1（N+1）。+1的目的是为了充分利用CPU的空闲时间。
     - IO密集型：2N +1（N是CPU的核心数）
 
-12.线程池里面的线程是如何实现复用的？
-
-- ThreadPoolExecutor里面的runWorker方法，由于使用到是while循环，只要当阻塞队列里面的任务不为空，那么当前线程会一直去阻塞队列里面获取任务进行处理，这样就实现了线程的复用。
+- 线程池里面的线程是如何实现复用的？
+    - ThreadPoolExecutor里面的runWorker方法，由于使用到是while循环，只要当阻塞队列里面的任务不为空，那么当前线程会一直去阻塞队列里面获取任务进行处理，这样就实现了线程的复用。
 
 ```JAVA
 final void runWorker(Worker w) {
@@ -1364,13 +1557,11 @@ final void runWorker(Worker w) {
 
 ### 函数式接口
 
+- 定义：通过@FunctionalInterface注解，并且接口里面有且仅有一个抽象方法
 
 
-1.定义：通过@FunctionalInterface注解，并且接口里面有且仅有一个抽象方法
-
-2.使用：作为方法的参数或者返回值
-
-- 使用函数式接口作为方法的参数
+- 使用：作为方法的参数或者返回值
+    - 使用函数式接口作为方法的参数
 
 ```java
 package com.juc;
@@ -1380,7 +1571,6 @@ public interface FunctionInterfaceTest
 {
     void test(String arg1, String arg2);
 }
-
 ```
 
 ```java
@@ -1466,46 +1656,44 @@ public class FunctionalInterfaceTestImpl implements FunctionInterfaceTest
         }
         ```
 
-3.Supplier 接口
+- Supplier 接口
+    - 生产型接口，通过get方法来生产数据的。
 
-- 生产型接口，通过get方法来生产数据的。
+```java
+package com.featrue;
 
-    ```java
-    package com.featrue;
-    
-    import java.util.function.Supplier;
-    
-    public class SupplierTest
+import java.util.function.Supplier;
+
+public class SupplierTest
+{
+    public static void main(String[] args)
     {
-        public static void main(String[] args)
+        SupplierTest supplierTest = new SupplierTest();
+        // way 1:
+        System.out.println(supplierTest.getString(new Supplier<String>()
         {
-            SupplierTest supplierTest = new SupplierTest();
-            // way 1:
-            System.out.println(supplierTest.getString(new Supplier<String>()
+            @Override
+            public String get()
             {
-                @Override
-                public String get()
-                {
-                    return "leo";
-                }
-            }));
-    
-            //way 2:
-            System.out.println(supplierTest.getString(() ->
-            {
-                return "LEO";
-            }));
-        }
-    
-        public String getString(Supplier<String> supplier)
+                return "leo";
+            }
+        }));
+
+        //way 2:
+        System.out.println(supplierTest.getString(() ->
         {
-            return supplier.get();
-        }
+            return "LEO";
+        }));
     }
-    ```
 
-    4.Consumer接口
+    public String getString(Supplier<String> supplier)
+    {
+        return supplier.get();
+    }
+}
+```
 
+- Consumer接口
     - 它是一个消费型接口，你给他什么样的数据，它就调用accept方法进行消费。
 
         ```java
@@ -1530,7 +1718,7 @@ public class FunctionalInterfaceTestImpl implements FunctionInterfaceTest
         }
         ```
 
-- addThen方法：连接多个Consumer接口并依次进行消费数据
+    - addThen方法：连接多个Consumer接口并依次进行消费数据
 
     ```java
     package com.featrue;
@@ -1565,10 +1753,9 @@ public class FunctionalInterfaceTestImpl implements FunctionInterfaceTest
     }
     ```
 
-5.Predicate接口
-
-- java.util.function.Predicate<T>，作用：对某种数据类型的数据进行判断并返回boolean值。
-- 里面包含一个test方法对数据进行判断。
+- Predicate接口
+    - java.util.function.Predicate<T>，作用：对某种数据类型的数据进行判断并返回boolean值。
+    - 里面包含一个test方法对数据进行判断。
 
 ```java
 package com.featrue;
@@ -1627,14 +1814,13 @@ public class PredicateTest
     }
     ```
 
-- or以及negate
+    - or以及negate
 
-6.Function接口：用来转换值的类型的
-
-- R apply(T t)：通过传入参数t，返回值R
-- Function andThen(Function function)：上一个Function的结果作为输入，再次进行转换。
-- Function compose(Function function)：后面的Function先执行
-- static Function identity()：静态方法，输入什么就输出什么
+- Function接口：用来转换值的类型的
+    - R apply(T t)：通过传入参数t，返回值R
+    - Function andThen(Function function)：上一个Function的结果作为输入，再次进行转换。
+    - Function compose(Function function)：后面的Function先执行
+    - static Function identity()：静态方法，输入什么就输出什么
 
 ```java
 package com.featrue;
@@ -1717,12 +1903,8 @@ public class FunctionTest
         return function1.compose(function2).apply(data); //function2先执行
     }
 
-}
+}                                                           
 ```
-
-​                                                             
-
-
 
 ### ForkJoin框架
 
@@ -1734,12 +1916,12 @@ public class FunctionTest
 
 2.什么是Fork/Join框架
 
-- 采用map/reduce 分治的设计思想，即将一个大任务拆分成多个小任务处理，最终将小任务的结果进行汇总，从而提高运算效率。
+- 采用map/reduce **分治的设计思想**，即将一个大任务拆分成多个小任务处理，最终将小任务的结果进行汇总，从而提高运算效率。
 
 3.ForkJoinPool
 
-- 类似于线程池，只不过线程池里面只有一个阻塞队列存放任务处理，而ForkJoinPool里面可以存放多个双端队列，双端队列中存放任务进行处理。
-- 采用工作窃取模式处理任务，每一个先对应一个双端队列，当某个线程里的队列任务完之后，它会去其他线程的队列尾部去窃取任务处理。这样提高了程序的执行效率。
+- **类似于线程池，只不过线程池里面只有一个阻塞队列存放任务处理，而ForkJoinPool里面可以存放多个双端队列，双端队列中存放任务进行处理。**
 - 为什么采用双端队列
     - 被窃取的线程从队列头部处理任务，而别窃取的任务是从尾部被处理，这样可以避免多线程竞争任务的情况。
+- 采用工作窃取模式处理任务，每一个线程对应一个双端队列，当某个线程里的队列任务完之后，它会去其他线程的队列尾部去窃取任务处理。这样提高了程序的执行效率。
 
