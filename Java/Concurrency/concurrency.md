@@ -10,8 +10,8 @@
 - [CopyOnWriteArraySet](#CopyOnWriteArraySet)
 - [ConcurrentHashMap](#ConcurrentHashMap)
 - [Callable](#Callable)
-- [CountDownLatch 发令枪](#CountDownLatch 发令枪)
-- [CyclicBarrier 循环栅栏](#CyclicBarrier 循环栅栏)
+- [CountDownLatch发令枪](#CountDownLatch发令枪)
+- [CyclicBarrier循环栅栏](#CyclicBarrier循环栅栏)
 - [Semaphore](#Semaphore)
 - [读写锁](#读写锁)
 - [阻塞队列](#阻塞队列)
@@ -946,7 +946,7 @@ class PlateDumplate
 
     - get()：获取任务的执行结果，获取到结果之前，一直阻塞。
 
-### CountDownLatch 发令枪
+### CountDownLatch发令枪
 
 - 发令枪
     - 作用：并发场景下，让一个线程或者多个线程等待，直到这些线程完成各自的操作以后才继续往下执行。
@@ -987,7 +987,7 @@ class PlateDumplate
         }
         ```
 
-### CyclicBarrier 循环栅栏
+### CyclicBarrier循环栅栏
 
 - 循环栅栏：一组线程在达到屏蔽点之前都得等待，如果说达到了屏蔽点，那么所以线程才会继续往下执行。
     - await()
