@@ -4,12 +4,15 @@
 - [并发与并行](#并发与并行)
 - [线程状态](#线程状态)
 - [wait/sleep区别](#wait/sleep区别)
-- [Synchronized与Lock](#Synchronized与Lock)
 - [生产者消费者模型，防止虚拟唤醒](#生产者消费者模型防止虚拟唤醒)
 - [CopyOnWriteArrayList](#CopyOnWriteArrayList)
 - [CopyOnWriteArraySet](#CopyOnWriteArraySet)
 - [ConcurrentHashMap](#ConcurrentHashMap)
 - [Callable](#Callable)
+- [Synchronized与Lock](#Synchronized与Lock)
+- [手写一把锁](#手写一把锁)
+- [ReentrantLock](#ReentrantLock)
+- [AQS](#AQS)
 - [CountDownLatch发令枪](#CountDownLatch发令枪)
 - [CyclicBarrier循环栅栏](#CyclicBarrier循环栅栏)
 - [Semaphore](#Semaphore)
@@ -139,24 +142,96 @@ public enum State {
 
 #### Synchronized
 
-- 多线程环境下控制资源同步访问，同步代码块是一个原子操作
+- **对象监视器锁。**多线程环境下控制资源同步访问，同步代码块是一个原子操作，**依赖于底层操作系统Mutex Lock实现。**
+- **对象内存结构/内存布局**
+    - 对象头：**64位操作系统占用16字节**
+        - mark word: 包括锁的状态信息，对象的hash码，对象分代年龄。占用8字节。
+        - klass word：指向实例对象的元数据信息的指针。开启指针压缩占用4字节，没开启占用8字节
+            - ![](./Resource/img/synchronized/klass_pointer.jpg)
+        
+    - 对象实际数据：成员数据
+
+    - 对其填充：实例对象创建的时候会占用固定大小的空间，如果说对象的实际数据没有占满该空间，那么把剩余的空的位置自动填满。
+
+        ```
+        com.example.springbootredis.com.leo.SynchronizeTest object internals:
+         OFFSET  SIZE   TYPE DESCRIPTION                               VALUE
+              0     4        (object header)                           0d 00 00 00 (00001101 00000000 00000000 00000000) (13)
+              4     4        (object header)                           00 00 00 00 (00000000 00000000 00000000 00000000) (0)
+              8     4        (object header)                           b2 c5 06 f8 (10110010 11000101 00000110 11111000) (-133773902)
+             12     4        (loss due to the next object alignment)
+        Instance size: 16 bytes
+        ```
+
+        
+
+        ```c++
+        //  32 bits:
+        //  --------
+        //             hash:25 ------------>| age:4    biased_lock:1 lock:2 (normal object)
+        //             JavaThread*:23 epoch:2 age:4    biased_lock:1 lock:2 (biased object)
+        //
+        //  64 bits:
+        //  --------
+        //  unused:25 hash:31 -->| unused_gap:1   age:4    biased_lock:1 lock:2 (normal object)
+        //  JavaThread*:54 epoch:2 unused_gap:1   age:4    biased_lock:1 lock:2 (biased object)
+        ```
+
+    - 指针压缩：
+
+        - 64位JVM消耗的内存会比32位的要多大约1.5倍，这是因为对象指针在64位JVM下有更宽的寻址。对于那些将要从32位平台移植到64位的应用来说，平白无辜多了1/2的内存占用，这是开发者不愿意看到的。
+        - 作用：**节约内存占用**
+
 - 版本：
-    - JDK1.6及其以前：synchronized是一把重量级锁，某个线程获取到锁之后，其他线程就处于阻塞状态，直到当前线程释放掉锁以后，处于阻塞队列中的线程会去竞争这把锁。竞争到锁的线程会发生线程切换，这个时候会调用操作系统函数使得**操作系统由用户态转成和心态**，这个操作是十分耗时的，因此JDK1.6以前synchronized效率是比较低下的。
+    - JDK1.6及其以前：synchronized是一把重量级锁，某个线程获取到锁之后，其他线程就处于阻塞状态，直到当前线程释放掉锁以后，处于阻塞队列中的线程会去竞争这把锁。竞争到锁的线程会发生线程切换，这个时候会调用操作系统函数使得**操作系统由用户态转成核心态**，这个操作是十分耗时的，因此JDK1.6以前synchronized效率是比较低下的。
+        - 为什么操作系统的用户态和内核态转换是非常耗时的或者耗费资源的？
+            - 硬件
+            - 
     - JDK1.6以后：对synchronized进行了优化，引入了偏向锁，轻量级锁，自旋锁等等。
         - 偏向锁：没有多线程竞争情况下，会把整个同步代码块给消除掉。它偏向于第一次获取到锁的那个线程，在接下来的执行过程中，该线程获取到锁的概率更大。那么如果偏向锁获取失败，那么会膨胀为轻量级锁。
         - 轻量级锁：轻量级锁采用CAS加锁，相比与重量级锁直接使用操作系统的互斥量所产生的性能开销更小。如果多线程环境下锁资源竞争激烈，如果轻量级锁加锁失败之后，轻量级锁会膨胀为重量级锁。
         - 自旋锁：在轻量级锁加锁失败之后，它会尝试空转，也就是什么都不做，等其他线程释放锁。因为线程获取到锁之后执行的时间很快，远低于线程阻塞到执行这两种线程状态的切换时间。还是获取不到锁的话，那么就会膨胀为重量级锁。
         - 锁消除：编译器在编译Java代码的时候，会检测共享资源是否存在竞争锁的情况，如果没有，那么会消除相应的锁。
+    
 - 作用域
     - 静态方法：也就是给当前类加锁，多线程环境竞争资源的情况下，进入同步代码块之前需要获得类对象的锁。
     - 非静态方法：给当前实例对象加锁，多线程环境竞争资源的情况下，进入同步代码块之前需要获得实例对象的锁。
+    
 - 如何确定锁定对象是谁，即锁的对象是谁？
     - 如果显示指定了锁的对象：synchronized(this), synchronized(变量名)那么就表明你加锁的对象是括号里面的对象。
     - 如果是隐式的：比如说修饰非静态方法或者静态方法
         - 非静态方法：锁的是实例对象。
         - 静态方法：那么你锁的对象是类对象。
+    
 - 字节码层面理解synchronized
+  
     - synchronized的实现是使用**monitorenter和monitorexit**来实现的，monitorenter表明同步代码块开始的位置，monitorexit表明同步代码块结束的位置.当锁的计算器为0的时候表明可以获取锁，获取到锁之后那么锁的计数器会+1，由于synchronized是可重入锁，因此可以它可以获取到同一对象的多把锁，每获取到一次锁，那么锁的计数器就+1,最后它会调用monitorexit去释放锁，没释放一次锁，锁的计数器就-1. 当锁的计数器为0的时候表明锁已经全部释放完。
+    
+- 延伸
+
+    - 锁的状态
+
+        - 无锁，偏向锁，轻量级锁，重量级索，GC标记
+
+    - 实例对象怎么存储在内存中的？
+
+        - **对象存放在堆，对象的元数据存放在元空间(方法区)，对象的引用存放在栈**
+
+    - 元数据
+
+        - meta data。对数据的特征，内容等方面进行说明的数据。(data about data.)
+
+    - 为什么不直接上重量级锁
+
+        - 重量级锁会涉及到线程上下文切换，使得操作系统用户态和内核态转换，非常消耗系统资源。
+
+        - 为什么线程上下文切换就会消耗很大系统资源？
+
+            - **直接消耗**：指的是CPU寄存器需要保存和加载, 系统调度器的代码需要执行, TLB实例需要重新加载, CPU 的pipeline需要刷掉；
+    
+            - **间接消耗**：指的是多核的cache之间得共享数据, 间接消耗对于程序的影响要看线程工作区操作数据的大小；
+    
+                
 
 #### Lock
 
@@ -946,6 +1021,275 @@ class PlateDumplate
 
     - get()：获取任务的执行结果，获取到结果之前，一直阻塞。
 
+
+
+### 手写一把锁
+
+```java
+volatile int status = 0;	//是否有线程获取到锁，0表示没有
+Queue parkQueue;			//队列，用来存放阻塞的线程
+	
+//加锁流程
+public void lock()
+{
+    //CAS(0,1); 比较当前status值是否为0，如果是的话返回true，否则返回false
+	while(!CAS(0,1))	
+	{
+		park();	//当前线程阻塞
+	}
+	
+	logic(); //处理业务逻辑
+	
+	unlock();
+}
+ 
+public void unlock()
+{
+	status = status -1 ;
+	Thread t = parkQueue.header();	//得到队列头部线程
+	unpark(t);	//唤醒t线程
+}
+ 
+public void park()
+{
+	Thread t = Thread.currentThread();
+	parkQueue.add(t);	//当前线程加入阻塞队列
+	releaseCpu();	//释放CPU资源
+}
+ 
+public boolean  CAS(int oldVlaue, int newValue)
+{
+	//CAS操作，修改status的值成功返回true，否则返回false
+}
+ 
+```
+
+### ReentrantLock
+
+- 可重入锁，始于JDK1.5，基于Java API层面实现。**线程交替执行，没有竞争执行的情况，其实和队列无关，从JDK级别解决的同步问题。**
+
+- 实现可选择性通知，唤醒指定线程，让线程有序执行
+
+- **可中断锁**
+
+    - 通过设置超时时间或者调用lockInterruptibly
+
+        ```java
+        
+        
+        Thread t1 = new Thread(()->{
+            try
+            {
+                //reentrantLock.tryLock(long timeout, TimeUnit unit); 设置超时中断时间
+                reentrantLock.lockInterruptibly();
+            }
+            catch (InterruptedException exception)
+            {
+                exception.printStackTrace();
+            }
+            finally
+            {
+                reentrantLock.unlock();
+            }
+        }, "t1");
+        t1.start();
+        t1.interrupt(); //手动打断等待的线程
+        ```
+
+- 锁的对象是线程
+
+- 加锁过程：就是让lock方法正常返回
+
+    - 公平锁
+
+        - 尝试获取锁的线程会查看AQS里面是否有线程排队，有点话，那么就排队。没有的话，就尝试CAS加锁。
+            - 优点：队列里面的线程不会饿死
+            - 缺点：唤醒队列里面的线程开销较大，吞吐量较低
+
+    - 非公平锁
+
+        - 尝试获取锁的线程不需要查看AQS队列是否有排队的线程，直接通过CAS尝试加锁。
+            - 优点：吞吐量大，性能好。
+            - 缺点：可能队列里面的线程会饿死。
+
+    - 交替执行
+
+        - 没有用到AQS队列同步器，只是使用cas对AQS里面state进行了修改
+
+        ![](./Resource/img/reentrantlock/no_competition.png)
+
+    - 竞争执行
+
+        - **队列的队头元素的线程一定是null**
+            - 为什么队头元素是null,为何要虚拟出来一个null结点？
+                - AQS设计的思想是，队头元素永远是持有锁的线程，
+
+        - t1获取到锁并没有释放，t2，t3竞争获取锁
+
+            ![](./Resource/img/reentrantlock/t2_enq.png)
+
+            ![](./Resource/img/reentrantlock/t3_enq.png)
+
+            - **公平锁加锁过程**
+
+                ```java
+                final void lock() {
+                    this.acquire(1);
+                }
+                public final void acquire(int arg) {
+                        if (!this.tryAcquire(arg) && this.acquireQueued(this.addWaiter(AbstractQueuedSynchronizer.Node.EXCLUSIVE), arg)) {
+                            selfInterrupt();
+                        }
+                
+                    }
+                
+                //尝试加锁，看能否获取到锁
+                protected final boolean tryAcquire(int acquires) {
+                            Thread current = Thread.currentThread();
+                			//查看锁的状态，如果不是0，说明被其他线程持有
+                    		int c = this.getState();
+                            if (c == 0) {
+                                if (!this.hasQueuedPredecessors() && this.compareAndSetState(0, acquires)) {
+                                    //设置持有锁的线程为当前线程
+                                    this.setExclusiveOwnerThread(current);
+                                    return true;
+                                }
+                            } else if (current == this.getExclusiveOwnerThread()) { //如果持有锁的线程是当前线程，那么可以再次获取到锁，锁的计数器加1。**这就是重入锁的体现**
+                                int nextc = c + acquires;
+                                if (nextc < 0) {
+                                    throw new Error("Maximum lock count exceeded");
+                                }
+                				//设置锁的状态
+                                this.setState(nextc);
+                                return true;
+                            }
+                
+                            return false;
+                        }
+                //查看队列里面是否有其他线程在排队
+                public final boolean hasQueuedPredecessors() {
+                        AbstractQueuedSynchronizer.Node t = this.tail;
+                        AbstractQueuedSynchronizer.Node h = this.head;
+                        AbstractQueuedSynchronizer.Node s;
+                        return h != t && ((s = h.next) == null || s.thread != Thread.currentThread());
+                    }
+                
+                private AbstractQueuedSynchronizer.Node addWaiter(AbstractQueuedSynchronizer.Node mode) {
+                    	//创建一个新的Node结点，该Node结点的线程是当前线程
+                        AbstractQueuedSynchronizer.Node node = new AbstractQueuedSynchronizer.Node(Thread.currentThread(), mode);
+                        AbstractQueuedSynchronizer.Node pred = this.tail;
+                        if (pred != null) {
+                            node.prev = pred;
+                            if (this.compareAndSetTail(pred, node)) {
+                                pred.next = node;
+                                return node;
+                            }
+                        }
+                        this.enq(node);
+                        return node;
+                    }
+                //采用CAS和自旋把当前Node结点入队，入队就是维护好链表关系
+                private AbstractQueuedSynchronizer.Node enq(AbstractQueuedSynchronizer.Node node) {
+                        while(true) {
+                            AbstractQueuedSynchronizer.Node t = this.tail;
+                            if (t == null) {
+                                if (this.compareAndSetHead(new AbstractQueuedSynchronizer.Node())) {
+                                    this.tail = this.head;
+                                }
+                            } else {
+                                node.prev = t;
+                                if (this.compareAndSetTail(t, node)) {
+                                    t.next = node;
+                                    return t;
+                                }
+                            }
+                        }
+                    }
+                //把Node结点的线程阻塞
+                final boolean acquireQueued(AbstractQueuedSynchronizer.Node node, int arg) {
+                        boolean failed = true;
+                
+                        try {
+                            boolean interrupted = false;
+                
+                            while(true) {
+                                AbstractQueuedSynchronizer.Node p = node.predecessor();
+                                if (p == this.head && this.tryAcquire(arg)) {
+                                    this.setHead(node);
+                                    p.next = null;
+                                    failed = false;
+                                    boolean var6 = interrupted;
+                                    return var6;
+                                }
+                
+                                if (shouldParkAfterFailedAcquire(p, node) && this.parkAndCheckInterrupt()) {
+                                    interrupted = true;
+                                }
+                            }
+                        } finally {
+                            if (failed) {
+                                this.cancelAcquire(node);
+                            }
+                
+                        }
+                    }
+                
+                //把上一个Node结点的waitStatus设置成-1，表示上一个Node结点的线程睡眠。
+                private static boolean shouldParkAfterFailedAcquire(AbstractQueuedSynchronizer.Node pred, AbstractQueuedSynchronizer.Node node) {
+                        int ws = pred.waitStatus;
+                        if (ws == -1) {
+                            return true;
+                        } else {
+                            if (ws > 0) {
+                                do {
+                                    node.prev = pred = pred.prev;
+                                } while(pred.waitStatus > 0);
+                
+                                pred.next = node;
+                            } else {
+                                compareAndSetWaitStatus(pred, ws, -1);
+                            }
+                
+                            return false;
+                        }
+                    }
+                //当前线程阻塞
+                private final boolean parkAndCheckInterrupt() {
+                        LockSupport.park(this);
+                        return Thread.interrupted();
+                    }
+                ```
+
+                
+
+### AQS队列同步器
+
+- 抽象类
+
+    ```java
+    public abstract class AbstractQueuedSynchronizer {
+        ...
+        private transient volatile AbstractQueuedSynchronizer.Node head; //队列头指针
+        private transient volatile AbstractQueuedSynchronizer.Node tail; //队列尾指针
+        private volatile int state; //锁的状态
+        private transient Thread exclusiveOwnerThread;//当前持有锁的线程
+    }
+    
+    //双向链表结构
+    static final class Node {
+        ...    
+        volatile AbstractQueuedSynchronizer.Node prev; //前驱
+        volatile AbstractQueuedSynchronizer.Node next; //后继
+        volatile Thread thread; //线程
+    }
+    ```
+
+- 技术
+
+    - cas
+    - park/unpark
+    - 自旋
+
 ### CountDownLatch发令枪
 
 - 发令枪
@@ -956,6 +1300,7 @@ class PlateDumplate
         - await(long timeout, TimeUnit unit)：超时等待。
 
 - 调用countDown会等待吗
+  
     - 不会，调用await才会等待
 - 底层是基于AQS来实现的
 
@@ -1263,7 +1608,16 @@ class PlateDumplate
 
 ### 读写锁
 
-- 
+- 锁分类
+    - 读锁
+        - 其他线程已经获取写锁，获得读锁的线程会等待
+        - 其他线程获取读锁，当前获得读锁的线程会并发执行
+    - 写锁
+        - 其他线程已经获得了读锁或者写锁，当前获得写锁的线程会等待
+- 作用
+    - 提高了并发读的效率
+- 使用场景
+    - 读多写少
 
 ### 阻塞队列
 
@@ -1478,8 +1832,9 @@ public ThreadPoolExecutor(int corePoolSize,
     - DiscardPolicy：直接丢弃当前任务
 
 - 任务处理流程
-    - 任务来了，交给核心线程处理，如果核心线程处理不过来，就把任务放入阻塞队列。如果某一时刻阻塞队列也满了，还有任务过来，那么就创建非核心线程处理任务，知道线程池中线程数达到最大线程数的限制。如果说还有任务来，那么就采用拒绝策略来处理当前任务。
-
+  
+- 任务来了，交给核心线程处理，如果核心线程处理不过来，就把任务放入阻塞队列。如果某一时刻阻塞队列也满了，还有任务过来，那么就创建非核心线程处理任务，知道线程池中线程数达到最大线程数的限制。如果说还有任务来，那么就采用拒绝策略来处理当前任务。
+  
 - 任务提交的方法
     - execute：没有返回值，不知道任务是否执行完。
     - submit：有返回值，返回的是Future类型的对象，可以通过该对象得知任务是或处理完。
@@ -1507,6 +1862,7 @@ public ThreadPoolExecutor(int corePoolSize,
     - IO密集型：2N +1（N是CPU的核心数）
 
 - 线程池里面的线程是如何实现复用的？
+  
     - ThreadPoolExecutor里面的runWorker方法，由于使用到是while循环，只要当阻塞队列里面的任务不为空，那么当前线程会一直去阻塞队列里面获取任务进行处理，这样就实现了线程的复用。
 
 ```JAVA
@@ -1657,6 +2013,7 @@ public class FunctionalInterfaceTestImpl implements FunctionInterfaceTest
         ```
 
 - Supplier 接口
+  
     - 生产型接口，通过get方法来生产数据的。
 
 ```java
