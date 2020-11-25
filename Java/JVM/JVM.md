@@ -22,7 +22,7 @@
 
 ##### 类加载过程
 
-![](.\resource\img\ClassLoader\class_load_process.png)
+![](./resource/img/ClassLoader/class_load_process.png)
 
 - 加载
     - 通过类的全限定名来获取该类的二进制字节流，通过类加载器加载进内存。
@@ -53,7 +53,7 @@
 
 #### 双亲委派模型
 
-​	![](.\resource\img\ClassLoader\class_loader_module.jpg)
+​	![](./resource/img/ClassLoader/class_loader_module.jpg)
 
 - **作用：**
     - **避免类的重复加载**
@@ -76,4 +76,4 @@
 
 #### JVM内存模型
 
-![](.\resource\img\JVM_Runtime_Model\java_runtime_model.png)
+![](./resource/img/JVM_Runtime_Model/java_runtime_model.png)
