@@ -9,7 +9,8 @@
     - [J2EE基础](./Java/Basic/JavaEE_Basic.md)
     - [容器](./Java/Container/Java_Container.md)
     - [并发](./Java/Concurrency/concurrency.md)
-    - JVM
+    - [Java8](./Java/Java8/Java8.md)
+    - [JVM](./Java/JVM/JVM.md)
   - 缓存
     - [Redis](./Redis/Redis.md)
   - Devops
