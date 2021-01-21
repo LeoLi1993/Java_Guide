@@ -175,9 +175,9 @@
 
 ### Web容器两个Map
 
-- Map One:：Web容器启动的时候会创建servlet实例，第一个Map存放的Key是uri，Value是Servlet实例的引用。
+- Map One:：Web容器启动的时候会创建servlet实例，第一个Map存放的Key是url-pattern，Value是Servlet实例的引用。
 
-- Map Two：Key是uri（除去Ip地址和Port剩下的部分），Value是Servlet的全限定名
+- Map Two：Key是url-pattern（除去Ip地址和Port剩下的部分），Value是Servlet的全限定名
 
 - 请求流程：**当用户发送一个请求来的时候，会在第一个Map中找是否有Servlet引用，如果存在直接调用service方法，如果不存在那么回去第二个Map中找，找到之后会创建Servlet实例，最后把创建好的Servlet实例引用添加到第一个Map中。**
 
@@ -207,7 +207,7 @@
 
 - 应用场景
 
-    - 提交表单的场景：重定向
+    - 提交表单的场景：重定向,由于重定向过后请求地址会发生改变，因此刷新页面并不会再次提交表单，从而避免了表单重复提交的问题。
     - 多个Web服务之间跳转：重定向
     - 单个Web服务内部跳转不涉及表单提交：转发
 
