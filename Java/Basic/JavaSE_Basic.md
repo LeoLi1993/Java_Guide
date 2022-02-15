@@ -435,12 +435,12 @@
         
         }
         
-        public void test1(List<? extends AbstractTest> list) //上界是AbstractTest
+        public void test1(List<? extends AbstractTest> list) //谁继承了AbstractTest
         {
             list.forEach( data -> System.out.println(data));
         }
         
-        public void test2(List<? super AbstractTest> list) //下界是AbstractTest
+        public void test2(List<? super AbstractTest> list) //谁是AbstractTest的父类
         {
             list.forEach( data -> System.out.println(data));
         }
@@ -738,3 +738,23 @@ public enum EnumTest implements InterfaceTest
     }
     
     ```
+
+### BIO,NIO,AIO的理解
+
+#### Java中的IO原理
+
+- Java中的IO实际上是调用**操作系统内核中read & write发起的系统调用**来实现的。
+
+#### BIO
+
+​	![](./resource/img/J2EE/io/blocking_io_server.png)
+
+​	![](./resource/img/J2EE/io/bio.png)
+
+- 阻塞IO，server端accept，read,write会阻塞。客户端和server连接好之后，server端创建一个新的线程来专门处理客户端的数据传输，这样server端可以和其他客户端进行连接。
+- 缺点：高并发的情况下，没来一个客户端和server连接都需要创建一个新的线程，那么资源消耗特别大！
+- 场景：排队吃饭，一直等，不做其他事情。
+
+#### NIO
+
+- 同步非阻塞IO，线程可以做其他事情，不用一直等到数据来。

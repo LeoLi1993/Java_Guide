@@ -80,7 +80,15 @@ public class ThreadLocalTest
 
 JDK1.8及其以后的ThreadLocal设计
 
-1. ThreadLocal set值的时候里面实际上用的是ThreadLocalMap进行存储的，ThreadLocalMap的key是当前的ThreadLocal，value就是线程变量的副本。而ThreadLocalMap又是用Entry[]来存储数据的。
+![](C:\Users\i337040\git\Java_Guide\Java\Concurrency\Resource\img\threadLocal\relation.png)
+
+```java
+ThreadLocalMap getMap(Thread t) {
+    return t.threadLocals;
+}
+```
+
+1. **ThreadLocal set值的时候里面实际上用的是ThreadLocalMap进行存储的，ThreadLocalMap的key是当前的ThreadLocal，value就是线程变量的副本。而ThreadLocalMap又是用Entry[]来存储数据的。**
 2. **怎么做到线程副本隔离的**？
    1. 每个Thread里面都有独自的ThreadLocal.ThreaLocalMap threadLocals，每当ThreadLocal设置值的时候，当前线程的threadLocals的内容就是ThreadLocalMap(当前ThreadLocal，value)。
    2. 你取值的时候，会从当前线程的threadLocals里面获取，通过传入的ThreadLocal即可取到线程的副本值，即实现了线程副本数据隔离。
@@ -103,6 +111,18 @@ JDK1.8及其以后的ThreadLocal设计
 
 ![](./resource/img/thread_local/thread_local_map.png)
 
+```java
+static class Entry extends WeakReference<ThreadLocal<?>> {
+    /** The value associated with this ThreadLocal. */
+    Object value;
+
+    Entry(ThreadLocal<?> k, Object v) {
+        super(k);
+        value = v;
+    }
+}
+```
+
 ### 强引用弱引用和内存泄漏
 
 #### 内存泄漏相关概念
@@ -123,7 +143,7 @@ JDK1.8及其以后的ThreadLocal设计
 
      ![](./resource/img/thread_local/thread_local_strong_reference.png)
 
-     - 解释：还是会。因为当前ThreadLocal使用完，它的引用就会被销毁，但是呢，由于当前现在还在执行，当前线程里面存放了ThreadLocalMap(ThreadLocal threadLocal, Object value);也就是说当前线程没有被销毁，那么就一直存在一个强引用指向堆内存上的ThreadLocal对象。因此呢，ThreadLocal对象不会被销毁，存在内存泄漏的风险。
+     - 解释：还是会。因为当前ThreadLocal使用完，它的引用就会被销毁，但是呢，由于当前线程还在执行，当前线程里面存放了ThreadLocalMap(ThreadLocal threadLocal, Object value);也就是说当前线程没有被销毁，那么就一直存在一个强引用指向堆内存上的ThreadLocal对象。因此呢，ThreadLocal对象不会被销毁，存在内存泄漏的风险。
 
      
 
@@ -132,7 +152,7 @@ JDK1.8及其以后的ThreadLocal设计
 
      ![](./resource/img/thread_local/thread_local_weak_reference.png)
 
-     - 解释：还是会。当前ThreadLocal使用完之后，引用被回收，同时由于Entry的Key是弱引用类型，因此在垃圾回收阶段，会把堆内存中的ThreadLocal对象回收掉,，所以Entry中的Key就变成null。但是，**只要当前线程没有被销毁，那么就存在一个强引用链**，当前线程引用到ThreadLocalMap ->Entry -> Value. 由于，Entry中的Key是null，但是Value又有值，但是该Entry永远都不会被访问到。因此还是会存在内存泄漏
+     - 解释：还是会。当前ThreadLocal使用完之后，引用被回收，同时由于Entry的Key是弱引用类型，因此在垃圾回收阶段，会把堆内存中的ThreadLocal对象回收掉,，所以Entry中的Key就变成null。但是，**只要当前线程没有被销毁，那么就存在一个强引用链**，当前线程引用到ThreadLocalMap ->Entry -> Value. 由于，Entry中的Key是null，但是Value又有值，但是该Entry永远都不会被访问到。因此还是会存在内存泄漏，因此需要手动调用ThreadLocal.remove()，删掉强引用。
 
 ### 内存泄漏的真正原因
 
@@ -155,3 +175,15 @@ JDK1.8及其以后的ThreadLocal设计
    2. 显然ThreadLocalMap采用线性探测的方式解决Hash冲突的**效率很低**，如果有大量不同的ThreadLocal对象放入map中时发送冲突，或者发生二次冲突，则效率很低。
 
       **所以这里引出的良好建议是：每个线程只存一个变量，这样的话所有的线程存放到map中的Key都是相同的ThreadLocal，如果一个线程要保存多个变量，就需要创建多个ThreadLocal，多个ThreadLocal放入Map中时会极大的增加Hash冲突的可能。**
+
+      ```java
+      public class Test
+      {
+          static ThreadLocal threadLocal1 = new ThreadLocal();
+          static ThreadLocal threadLocal2 = new ThreadLocal();
+          static ThreadLocal threadLocal3 = new ThreadLocal();
+          //不建议这样做，因此发生冲突的概率比较高
+      }
+      ```
+
+      

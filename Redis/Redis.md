@@ -94,376 +94,478 @@ string
 
 #### 五大数据类型
 
-1. String
+![](./resource/img/data_structure/5_data_type.png)
 
-   - 常用的命令
-     - getrange key start end
-     - getset key value
-     - mget key1 key2
-     - mset key1 value1 key2 value2
-     - setex key milisecounds value
-     - setnx key value
-     - strlen key
-     - incr key
-     - incrby key increment
-     - decr key
-     - decrby key decrement
-     - append key value
+​	![](./resource/img/data_structure/data_structure.png)
 
-   ```
-   127.0.0.1:6379> keys *
-   1) "age"
-   2) "name"
-   127.0.0.1:6379> get name
-   "leo"
-   127.0.0.1:6379> getrange name 0 2 	#从start到end,位置获取Key的值,闭区间
-   "leo"
-   127.0.0.1:6379> getset name LEO 	#获取key的值并显示，最后用新值替换旧值
-   "leo"
-   127.0.0.1:6379> get name
-   "LEO"
-   127.0.0.1:6379> getset gender female #获取key的值并显示，最后用新值替换旧值
-   (nil)
-   127.0.0.1:6379> get gender
-   "female"
-   127.0.0.1:6379> mget name gender	#获取多个key的值
-   1) "LEO"
-   2) "female"
-   127.0.0.1:6379> setex name 10 bbb 	设置key的值为bbb并在10s后过期
-   OK
-   127.0.0.1:6379> get name
-   "bbb"
-   127.0.0.1:6379> ttl name
-   (integer) 5
-   127.0.0.1:6379> ttl name
-   (integer) 2
-   127.0.0.1:6379> get name
-   (nil)
-   127.0.0.1:6379> setnx name BBB	#当key不存在的时候，才创建其值
-   (integer) 1
-   127.0.0.1:6379> get name
-   "BBB"
-   127.0.0.1:6379> setnx name bbb
-   (integer) 0
-   127.0.0.1:6379> get name
-   "BBB"
-   127.0.0.1:6379> mset key1 value1 key2 value2	#同时创建或者更新多个key-value键值对
-   OK
-   127.0.0.1:6379> mget key1 key2
-   1) "value1"
-   2) "value2"
-   127.0.0.1:6379> strlen key1			#获取key的值的长度
-   (integer) 6
-   127.0.0.1:6379> get age
-   "2"
-   127.0.0.1:6379> incr age		# key对应的value值加1自增
-   (integer) 3
-   127.0.0.1:6379> incr age
-   (integer) 4
-   127.0.0.1:6379> decr age		# key对应的value值减1自减
-   (integer) 3
-   127.0.0.1:6379> decr age
-   (integer) 2
-   127.0.0.1:6379> incrby age 10	# key对应的value值按照指定步长增长
-   (integer) 12
-   127.0.0.1:6379> incrby age 10
-   (integer) 22
-   127.0.0.1:6379> decrby age 10	# key对应的value值按照指定步长减少
-   (integer) 12
-   127.0.0.1:6379> decrby age 10
-   (integer) 2
-   127.0.0.1:6379> get name
-   "BBB"
-   127.0.0.1:6379> append name CCC		#key对应的value值最后添加新的内容
-   (integer) 6
-   127.0.0.1:6379> get name
-   "BBBCCC"
-   ```
+##### String
 
-2. List
+- 常用的命令
+  - getrange key start end
+  - getset key value
+  - mget key1 key2
+  - mset key1 value1 key2 value2
+  - setex key milisecounds value
+  - setnx key value
+  - strlen key
+  - incr key
+  - incrby key increment
+  - decr key
+  - decrby key decrement
+  - append key value
 
-   - 数据结构：采用双向链表存储数据
-   - 常用命令：
-     - lpush list value [value1 ...]
-     - lrange list start end 
-     - linsert list before value value1
-     - linsert list after value value1
-     - lindex list index
-     - lpop list
-     - rpop list
-     - ltrim list start end
-     - lset list index value
+```
+127.0.0.1:6379> keys *
+1) "age"
+2) "name"
+127.0.0.1:6379> get name
+"leo"
+127.0.0.1:6379> getrange name 0 2 	#从start到end,位置获取Key的值,闭区间
+"leo"
+127.0.0.1:6379> getset name LEO 	#获取key的值并显示，最后用新值替换旧值
+"leo"
+127.0.0.1:6379> get name
+"LEO"
+127.0.0.1:6379> getset gender female #获取key的值并显示，最后用新值替换旧值
+(nil)
+127.0.0.1:6379> get gender
+"female"
+127.0.0.1:6379> mget name gender	#获取多个key的值
+1) "LEO"
+2) "female"
+127.0.0.1:6379> setex name 10 bbb 	设置key的值为bbb并在10s后过期
+OK
+127.0.0.1:6379> get name
+"bbb"
+127.0.0.1:6379> ttl name
+(integer) 5
+127.0.0.1:6379> ttl name
+(integer) 2
+127.0.0.1:6379> get name
+(nil)
+127.0.0.1:6379> setnx name BBB	#当key不存在的时候，才创建其值
+(integer) 1
+127.0.0.1:6379> get name
+"BBB"
+127.0.0.1:6379> setnx name bbb
+(integer) 0
+127.0.0.1:6379> get name
+"BBB"
+127.0.0.1:6379> mset key1 value1 key2 value2	#同时创建或者更新多个key-value键值对
+OK
+127.0.0.1:6379> mget key1 key2
+1) "value1"
+2) "value2"
+127.0.0.1:6379> strlen key1			#获取key的值的长度
+(integer) 6
+127.0.0.1:6379> get age
+"2"
+127.0.0.1:6379> incr age		# key对应的value值加1自增
+(integer) 3
+127.0.0.1:6379> incr age
+(integer) 4
+127.0.0.1:6379> decr age		# key对应的value值减1自减
+(integer) 3
+127.0.0.1:6379> decr age
+(integer) 2
+127.0.0.1:6379> incrby age 10	# key对应的value值按照指定步长增长
+(integer) 12
+127.0.0.1:6379> incrby age 10
+(integer) 22
+127.0.0.1:6379> decrby age 10	# key对应的value值按照指定步长减少
+(integer) 12
+127.0.0.1:6379> decrby age 10
+(integer) 2
+127.0.0.1:6379> get name
+"BBB"
+127.0.0.1:6379> append name CCC		#key对应的value值最后添加新的内容
+(integer) 6
+127.0.0.1:6379> get name
+"BBBCCC"
+```
 
-   ```bash
-   127.0.0.1:6379> lpush key 1 2 3		#从左边插入元素
-   (integer) 3
-   127.0.0.1:6379> keys *
-   1) "key"
-   127.0.0.1:6379> lrange key 0 -1		#查看列表中所以元素
-   1) "3"
-   2) "2"
-   3) "1"
-   127.0.0.1:6379> linsert key after 1 0	#往列表中的1元素的后面插入0
-   (integer) 4
-   127.0.0.1:6379> lrange key 0 -1
-   1) "3"
-   2) "2"
-   3) "1"
-   4) "0"
-   127.0.0.1:6379> linsert key before 3 4		#往列表key中的3的前面插入4
-   (integer) 5
-   127.0.0.1:6379> lrange key 0 -1
-   1) "4"
-   2) "3"
-   3) "2"
-   4) "1"
-   5) "0"
-   127.0.0.1:6379> lindex key 4		#获取列表中第4个元素的下标
-   "0"
-   127.0.0.1:6379> lpop key			#弹出列表中最左边的元素
-   "4"
-   127.0.0.1:6379> lrange key 0 -1
-   1) "3"
-   2) "2"
-   3) "1"
-   4) "0"
-   127.0.0.1:6379> lrange key 0 -1
-   1) "3"
-   2) "2"
-   3) "1"
-   127.0.0.1:6379> ltrim key 0 1		#按照范围修剪列表
-   OK
-   127.0.0.1:6379> lrange key 0 -1
-   1) "3"
-   2) "2"
-   127.0.0.1:6379> lset key 0 0		#修改指定下标元素值
-   OK
-   127.0.0.1:6379> lrange key 0 -1		
-   1) "0"
-   2) "2"
-   ```
+##### String应用场景
 
-3. Set
+- 单值缓存 set key value; get key
 
-   1.  数据结构以及特性：通过哈希表实现；因此Set集合中元素不会重复出现，并且元素是无序的。查找删除元素的时间复杂度是O(1).
-   2.  常用命令
-      -    sadd key value1 [value2...]
-      -    smembers key
-      -    ​    sismember key
-      -    ​    srem key value1 [value2...]
-      -    ​    scard key
-      -    spop key
-      -    srandmember key [count] 
-      -    smove source destination value
-      -    sdiffstore destination key1 key2 [key3...]
-      -    sinter key1 key2
-      -    sunion key1 key2
+- 对象缓存
 
-   ```bash
-   127.0.0.1:6379> sadd myset key1 key2 key3 #往set集合中添加元素
-   (integer) 3
-   127.0.0.1:6379> smembers myset			#查看set集合中所有元素
-   1) "key3"
-   2) "key2"
-   3) "key1"
-   127.0.0.1:6379> sismember myset key3	#查看某元素是否在set集合中
-   (integer) 1
-   127.0.0.1:6379> srem myset key3 key2	#删除set集合中某个元素
-   (integer) 2
-   127.0.0.1:6379> smembers myset
-   1) "key1"
-   127.0.0.1:6379> scard myset			#查看set集合中元素个数
-   (integer) 1
-   127.0.0.1:6379> srandmember myset	#随机获取set集合中的元素
-   "key3"
-   127.0.0.1:6379> srandmember myset 2 #随机获取set集合中2个元素
-   1) "key3"
-   2) "key2"
-   127.0.0.1:6379> srandmember myset 2
-   1) "key1"
-   2) "key4"
-   127.0.0.1:6379> spop myset		#弹出set集合中
-   "key6"
-   127.0.0.1:6379> smove myset mysetCopy key5 #把元素key5从Set集合1移动到Set集合2中
-   (integer) 1
-   127.0.0.1:6379> smembers mysetCopy
-   1) "key5"
-   127.0.0.1:6379> smembers myset
-   1) "key2"
-   2) "key3"
-   3) "key1"
-   4) "key4"
-   127.0.0.1:6379> sadd myset2 key5 key6 key7
-   (integer) 3
-   127.0.0.1:6379> sadd myset2 key4
-   (integer) 1
-   127.0.0.1:6379> smembers myset2
-   1) "key5"
-   2) "key4"
-   3) "key7"
-   4) "key6"
-   127.0.0.1:6379> sdiffstore myDiffSet myset myset2 #比较两个集合的差集（以第一个元素为基准），并把结果存放的myDiffSet中
-   (integer) 3
-   127.0.0.1:6379> smembers myDiffSet
-   1) "key3"
-   2) "key1"
-   3) "key2"
-   127.0.0.1:6379> sinter myset myset2		#计算两个集合的交集
-   1) "key4"
-   127.0.0.1:6379> sunion myset myset2		#计算两个集合的并集
-   1) "key6"
-   2) "key7"
-   3) "key2"
-   4) "key3"
-   5) "key5"
-   6) "key1"
-   7) "key4"
-   ```
+    - set user:1 value(json 格式数据)
 
-4. Hash
+    - mset user:1:name zhuge user:1:balance 2000
 
-   - hset myhash k1 v1
+    - mget user:1:name user:1:balance
 
-   - hmset myhash k1 v1 k2 v2
-   - hget myhash k1
-   - hmget myhash k1 k2
-   - hgetall myhash
-   - hdel myhash key1 [key2...]
-   - hlen myhash 
-   - hexists myhash k1
-   - hkeys myhash
-   - hvals myhash 
-   - hincrby myhash k1 1
-   - hsetnx myhahs k1 v1
+        ![](./resource/img/data_structure/string.png)
 
-   ```bash
-   127.0.0.1:6379> hset myhash key1 value1			#设置myhash表的key-value
-   (integer) 1
-   127.0.0.1:6379> hmset myhash k1 v1 k2 v2		#批量设置myhash表的key-value
-   OK
-   127.0.0.1:6379> hset myhash k1 vv				
-   (integer) 0
-   127.0.0.1:6379> hget myhash k1					#通过key获取myhash的value		
-   "vv"
-   127.0.0.1:6379> hmget myhash k1 k2				#通过key批量获取myhash的value
-   1) "vv"
-   2) "v2"
-   127.0.0.1:6379> hgetall myhash					#获取myhash表中所有的键值对
-   1) "key1"
-   2) "value1"
-   3) "k1"
-   4) "vv"
-   5) "k2"
-   6) "v2"
-   127.0.0.1:6379> hdel myhash key1
-   (integer) 1
-   127.0.0.1:6379> hgetall myhash
-   1) "k1"
-   2) "vv"
-   3) "k2"
-   4) "v2"
-   127.0.0.1:6379> hdel myhash k0 k1 k2		#通过key删除myhash表中所有的value
-   (integer) 2
-   127.0.0.1:6379> hgetall myhash
-   (empty list or set)
-   127.0.0.1:6379> hmset myhash k1 v1 k2 v2 k3 v3	#获取myhash表中键值对个数
-   OK
-   127.0.0.1:6379> hlen myhash
-   (integer) 3
-   127.0.0.1:6379> hexists myhash k1			#查看myhash表中k1是否存在
-   (integer) 1
-   127.0.0.1:6379> hexists myhash k0		
-   (integer) 0
-   127.0.0.1:6379> hkeys myhash				#获取myhash表中所有的key
-   1) "k1"
-   2) "k2"
-   3) "k3"
-   127.0.0.1:6379> hvals myhash				#获取myhash表中所有的value
-   1) "v1"
-   2) "v2"
-   3) "v3"
-   127.0.0.1:6379> hincrby myhash k1 1			
-   (error) ERR hash value is not an integer
-   127.0.0.1:6379> hgetall myhash
-   1) "k1"
-   2) "v1"
-   3) "k2"
-   4) "v2"
-   5) "k3"
-   6) "v3"
-   127.0.0.1:6379> hset myhash k1 1			
-   (integer) 0
-   127.0.0.1:6379> hincrby myhash k1 1			#myhash表key对应value值增加1
-   (integer) 2
-   127.0.0.1:6379> hget myhash k1
-   "2"
-   127.0.0.1:6379> hsetnx myhash k1 1
-   (integer) 0
-   127.0.0.1:6379> hgetall myhash
-   1) "k1"
-   2) "2"
-   3) "k2"
-   4) "v2"
-   5) "k3"
-   6) "v3"
-   127.0.0.1:6379> hsetnx myhash k4 v4		#往myhash表中添加元素，如果key存在则添加失败
-   (integer) 1
-   127.0.0.1:6379> hgetall myhash
-   1) "k1"
-   2) "2"
-   3) "k2"
-   4) "v2"
-   5) "k3"
-   6) "v3"
-   7) "k4"
-   8) "v4"
-   ```
+- 分布式锁
 
-5. ZSet
+    - setnx：如果key不存在就创建，存在就忽略
 
-   - 有序集合
+    ```
+    setnx product:10001 true //返回1表示获取锁成功
+    setnx product:10001 false //返回0表示获取锁成功
+    执行业务操作
+    del product:10001 //操作完释放锁
+    set product:10001 true ex 10 nx //设置过期时间，防止程序异常导致死锁
+    ```
 
-     
+- **文章的阅读量：**incr article:readCount:101(101文章id)
+- **分布式系统全局序列号**
+    - incrby oderid 1000
+    - 高并发情况下创建订单，订单的id由redis生成，每次id自增。Redis可以一次生成1000个序列号，订单的id直接从生成的1000个序列号里面获取，没有的话再创建1000个序列号。这样可以提升系统的性能。
 
-6. 三种特殊类型
+##### List
 
-   - Geo地址位置
+![](./resource/img/data_structure/list.png)
 
-     - 底层数据结构：采用ZSet有序集合存储数据
-     - 命令
-       - geoadd key logtitude latitude member [key2 longtitude latitude member2]
-       - geodist key member1 member2
-       - geopos key member
-       - georadius key longtitude latitude radius m|km|ft|mi
-       - geodiusbymember key member radius m|km|ft|mi
-       - geohash key memeber [member1...]
+- 数据结构：采用**双向链表存储数据**
+- 常用命令：
+  - lpush list value [value1 ...]
+  - lrange list start end 
+  - linsert list before value value1
+  - linsert list after value value1
+  - lindex list index
+  - lpop list
+  - rpop list
+  - ltrim list start end
+  - lset list index value
 
-     ```bash
-     127.0.0.1:6379> geoadd cities 116.23128 40.22077 beijing  121.48941 31.40527 shanghai #往地理位置集合中添加坐标
-     (integer) 2
-     127.0.0.1:6379> geodist cities beijing shanghai #计算两个坐标的距离
-     "1088644.3544"
-     127.0.0.1:6379> geoadd cities 104.10194 30.65984 chengdu  106.54041 29.40268 chongqing
-     (integer) 2
-     127.0.0.1:6379> geopos cities chengdu	#查看地址位置坐标：经度和纬度
-     1) 1) "104.101941883564"
-        2) "30.65983886217613"
-     127.0.0.1:6379> georadius cities 104 30 100 km	#在地址位置集合中查找给定坐标在指定半径的坐标
-     1) "chengdu"
-     127.0.0.1:6379> georadius cities 104 30 1000 km
-     1) "chongqing"
-     2) "chengdu"
-     127.0.0.1:6379> georadiusbymember cities chengdu 500 km #在地址位置集合中查找给定元素在指定半径的元素
-     1) "chongqing"
-     2) "chengdu"
-     127.0.0.1:6379> geohash cities chengdu #经纬度经过geohash运算后得到的base32编码的字符串
-     1) "wm6n2vkwx00"
-     127.0.0.1:6379> zrange cities 0 -1 #Geo底层数据结构就是使用ZSet来进行存储的
-     1) "chongqing"
-     2) "chengdu"
-     3) "shanghai"
-     4) "beijing"
-     ```
+```bash
+127.0.0.1:6379> lpush key 1 2 3		#从左边插入元素
+(integer) 3
+127.0.0.1:6379> keys *
+1) "key"
+127.0.0.1:6379> lrange key 0 -1		#查看列表中所以元素
+1) "3"
+2) "2"
+3) "1"
+127.0.0.1:6379> linsert key after 1 0	#往列表中的1元素的后面插入0
+(integer) 4
+127.0.0.1:6379> lrange key 0 -1
+1) "3"
+2) "2"
+3) "1"
+4) "0"
+127.0.0.1:6379> linsert key before 3 4		#往列表key中的3的前面插入4
+(integer) 5
+127.0.0.1:6379> lrange key 0 -1
+1) "4"
+2) "3"
+3) "2"
+4) "1"
+5) "0"
+127.0.0.1:6379> lindex key 4		#获取列表中第4个元素的下标
+"0"
+127.0.0.1:6379> lpop key			#弹出列表中最左边的元素
+"4"
+127.0.0.1:6379> lrange key 0 -1
+1) "3"
+2) "2"
+3) "1"
+4) "0"
+127.0.0.1:6379> lrange key 0 -1
+1) "3"
+2) "2"
+3) "1"
+127.0.0.1:6379> ltrim key 0 1		#按照范围修剪列表
+OK
+127.0.0.1:6379> lrange key 0 -1
+1) "3"
+2) "2"
+127.0.0.1:6379> lset key 0 0		#修改指定下标元素值
+OK
+127.0.0.1:6379> lrange key 0 -1		
+1) "0"
+2) "2"
+```
+
+##### List应用场景
+
+- **粉丝列表**
+
+##### Set
+
+- 数据结构：hashtable + inset来实现；inset底层是一个数组。
+
+1.  数据结构以及特性：通过哈希表实现；因此**Set集合中元素不会重复出现**，并且元素是**无序**的。查找删除元素的时间复杂度是O(1).
+2.  常用命令
+   -    sadd key value1 [value2...]
+   -    smembers key
+   -    ​    sismember key
+   -    ​    srem key value1 [value2...]
+   -    ​    scard key
+   -    spop key
+   -    srandmember key [count] 
+   -    smove source destination value
+   -    sdiffstore destination key1 key2 [key3...]
+   -    sinter key1 key2
+   -    sunion key1 key2
+
+```bash
+127.0.0.1:6379> sadd myset key1 key2 key3 #往set集合中添加元素
+(integer) 3
+127.0.0.1:6379> smembers myset			#查看set集合中所有元素
+1) "key3"
+2) "key2"
+3) "key1"
+127.0.0.1:6379> sismember myset key3	#查看某元素是否在set集合中
+(integer) 1
+127.0.0.1:6379> srem myset key3 key2	#删除set集合中某个元素
+(integer) 2
+127.0.0.1:6379> smembers myset
+1) "key1"
+127.0.0.1:6379> scard myset			#查看set集合中元素个数
+(integer) 1
+127.0.0.1:6379> srandmember myset	#随机获取set集合中的元素
+"key3"
+127.0.0.1:6379> srandmember myset 2 #随机获取set集合中2个元素
+1) "key3"
+2) "key2"
+127.0.0.1:6379> srandmember myset 2
+1) "key1"
+2) "key4"
+127.0.0.1:6379> spop myset		#弹出set集合中
+"key6"
+127.0.0.1:6379> smove myset mysetCopy key5 #把元素key5从Set集合1移动到Set集合2中
+(integer) 1
+127.0.0.1:6379> smembers mysetCopy
+1) "key5"
+127.0.0.1:6379> smembers myset
+1) "key2"
+2) "key3"
+3) "key1"
+4) "key4"
+127.0.0.1:6379> sadd myset2 key5 key6 key7
+(integer) 3
+127.0.0.1:6379> sadd myset2 key4
+(integer) 1
+127.0.0.1:6379> smembers myset2
+1) "key5"
+2) "key4"
+3) "key7"
+4) "key6"
+127.0.0.1:6379> sdiffstore myDiffSet myset myset2 #比较两个集合的差集（以第一个元素为基准），并把结果存放的myDiffSet中
+(integer) 3
+127.0.0.1:6379> smembers myDiffSet
+1) "key3"
+2) "key1"
+3) "key2"
+127.0.0.1:6379> sinter myset myset2		#计算两个集合的交集
+1) "key4"
+127.0.0.1:6379> sunion myset myset2		#计算两个集合的并集
+1) "key6"
+2) "key7"
+3) "key2"
+4) "key3"
+5) "key5"
+6) "key1"
+7) "key4"
+```
+
+##### Set应用场景
+
+- 共同好友
+- 利用为理性，统计网站的所有ip
+
+##### Hash-字典
+
+- 存储结构：ziplist & hashtable
+
+- hset myhash k1 v1
+
+- hmset myhash k1 v1 k2 v2
+- hget myhash k1
+- hmget myhash k1 k2
+- hgetall myhash
+- hdel myhash key1 [key2...]
+- hlen myhash 
+- hexists myhash k1
+- hkeys myhash
+- hvals myhash 
+- hincrby myhash k1 1
+- hsetnx myhahs k1 v1
+
+```bash
+127.0.0.1:6379> hset myhash key1 value1			#设置myhash表的key-value
+(integer) 1
+127.0.0.1:6379> hmset myhash k1 v1 k2 v2		#批量设置myhash表的key-value
+OK
+127.0.0.1:6379> hset myhash k1 vv				
+(integer) 0
+127.0.0.1:6379> hget myhash k1					#通过key获取myhash的value		
+"vv"
+127.0.0.1:6379> hmget myhash k1 k2				#通过key批量获取myhash的value
+1) "vv"
+2) "v2"
+127.0.0.1:6379> hgetall myhash					#获取myhash表中所有的键值对
+1) "key1"
+2) "value1"
+3) "k1"
+4) "vv"
+5) "k2"
+6) "v2"
+127.0.0.1:6379> hdel myhash key1
+(integer) 1
+127.0.0.1:6379> hgetall myhash
+1) "k1"
+2) "vv"
+3) "k2"
+4) "v2"
+127.0.0.1:6379> hdel myhash k0 k1 k2		#通过key删除myhash表中所有的value
+(integer) 2
+127.0.0.1:6379> hgetall myhash
+(empty list or set)
+127.0.0.1:6379> hmset myhash k1 v1 k2 v2 k3 v3	#获取myhash表中键值对个数
+OK
+127.0.0.1:6379> hlen myhash
+(integer) 3
+127.0.0.1:6379> hexists myhash k1			#查看myhash表中k1是否存在
+(integer) 1
+127.0.0.1:6379> hexists myhash k0		
+(integer) 0
+127.0.0.1:6379> hkeys myhash				#获取myhash表中所有的key
+1) "k1"
+2) "k2"
+3) "k3"
+127.0.0.1:6379> hvals myhash				#获取myhash表中所有的value
+1) "v1"
+2) "v2"
+3) "v3"
+127.0.0.1:6379> hincrby myhash k1 1			
+(error) ERR hash value is not an integer
+127.0.0.1:6379> hgetall myhash
+1) "k1"
+2) "v1"
+3) "k2"
+4) "v2"
+5) "k3"
+6) "v3"
+127.0.0.1:6379> hset myhash k1 1			
+(integer) 0
+127.0.0.1:6379> hincrby myhash k1 1			#myhash表key对应value值增加1
+(integer) 2
+127.0.0.1:6379> hget myhash k1
+"2"
+127.0.0.1:6379> hsetnx myhash k1 1
+(integer) 0
+127.0.0.1:6379> hgetall myhash
+1) "k1"
+2) "2"
+3) "k2"
+4) "v2"
+5) "k3"
+6) "v3"
+127.0.0.1:6379> hsetnx myhash k4 v4		#往myhash表中添加元素，如果key存在则添加失败
+(integer) 1
+127.0.0.1:6379> hgetall myhash
+1) "k1"
+2) "2"
+3) "k2"
+4) "v2"
+5) "k3"
+6) "v3"
+7) "k4"
+8) "v4"
+```
+
+##### Hash应用场景
+
+- 数据结构类似于HashMap
+
+- 对象缓存 hset table pk:column1 value1 pk:column2 value2
+
+    - hset user 1:name leo 1:balance 1000
+
+- **电商购物车**
+
+    - 用户id为key
+    - 商品id为field
+    - 商品数量为value
+        - hset cart:i337040 10001 1 //用户i337040往购物车添加1件商品10001
+        - hincreby cart:i337040 10001 1//用户i337040往购物车添加1件商品10001
+        - hgetall cart:i337040 //查看i337040用户购物车
+
+- 优点：相比于String来说，查询效率更高，存储的空间更少
+
+- 缺点：**在集群模式下**，hash算法没有设计好，多个hash key都落在一台结点上，会导致**数据倾斜**。这样违背了集群架构设计的初衷，集群架构设计目的是为了数据尽可能的均衡的存储在各个结点上。
+
+    ![](./resource/img/data_structure/cluster.png)
+
+##### ZSet
+
+- 有序集合，往集合里面添加元素，前面会加一个score，通过score对集合元素排序
+
+- zadd key score memeber[]
+
+- 存储结构
+
+    - ziplist（压缩列表）: 特殊编码，一块连续的内存组成的数据结构，**Redis为了节约内存空间而引入的**。里面通过**entry结点来存储**元素。
+
+        - 底层就是一个链表
+
+        - 元素个数小于128
+
+        - 所有元素长度小于64字节
+
+            ![](./resource/img/data_structure/ziplist.png)
+
+    - skiplist（跳表）
+
+        ![](./resource/img/data_structure/skiplist.png)
+
+        - 在链表的基础上建立的多级索引，从而提高查询/更新元素的效率，设计思想是根据二分查找来的
+        - 查询更新删除时间复杂度：log(n)
+        - 插入和删除元素的过程中，索引结构会不断的变化，通过随机函数来决定元素插入在哪一层。
+
+###### Redis中ZSet没什么不用红黑树来实现
+
+- 跳表实现简单，红黑树更加复杂
+- 对于范围查询来说，跳表的时间复杂度更低
+
+##### ZSet应用场景
+
+- **微博热度排行榜** -> 通过score来决定排行榜
+
+#### 三种特殊类型
+
+- Geo地址位置
+
+  - 底层数据结构：采用ZSet有序集合存储数据
+  - 命令
+    - geoadd key logtitude latitude member [key2 longtitude latitude member2]
+    - geodist key member1 member2
+    - geopos key member
+    - georadius key longtitude latitude radius m|km|ft|mi
+    - geodiusbymember key member radius m|km|ft|mi
+    - geohash key memeber [member1...]
+
+  ```bash
+  127.0.0.1:6379> geoadd cities 116.23128 40.22077 beijing  121.48941 31.40527 shanghai #往地理位置集合中添加坐标
+  (integer) 2
+  127.0.0.1:6379> geodist cities beijing shanghai #计算两个坐标的距离
+  "1088644.3544"
+  127.0.0.1:6379> geoadd cities 104.10194 30.65984 chengdu  106.54041 29.40268 chongqing
+  (integer) 2
+  127.0.0.1:6379> geopos cities chengdu	#查看地址位置坐标：经度和纬度
+  1) 1) "104.101941883564"
+     2) "30.65983886217613"
+  127.0.0.1:6379> georadius cities 104 30 100 km	#在地址位置集合中查找给定坐标在指定半径的坐标
+  1) "chengdu"
+  127.0.0.1:6379> georadius cities 104 30 1000 km
+  1) "chongqing"
+  2) "chengdu"
+  127.0.0.1:6379> georadiusbymember cities chengdu 500 km #在地址位置集合中查找给定元素在指定半径的元素
+  1) "chongqing"
+  2) "chengdu"
+  127.0.0.1:6379> geohash cities chengdu #经纬度经过geohash运算后得到的base32编码的字符串
+  1) "wm6n2vkwx00"
+  127.0.0.1:6379> zrange cities 0 -1 #Geo底层数据结构就是使用ZSet来进行存储的
+  1) "chongqing"
+  2) "chengdu"
+  3) "shanghai"
+  4) "beijing"
+  ```
 
 
 -    Hyperloglog
@@ -599,10 +701,10 @@ QUEUED
 
   - ```java
     package org.example;
-
+    
     import redis.clients.jedis.Jedis;
     import redis.clients.jedis.Transaction;
-
+    
     /**
      * Hello world!
      *
@@ -633,7 +735,7 @@ QUEUED
                 transaction.close();;
                 //jedis.disconnect();;
             }
-
+    
         }
     }
     ```
@@ -653,7 +755,7 @@ QUEUED
      template.setConnectionFactory(redisConnectionFactory);
      return template;
    }
-
+   
    @Bean
    @ConditionalOnMissingBean(StringRedisTemplate.class)
    public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory redisConnectionFactory) 	//由于Redis中我们常用的类型是String类型
@@ -701,7 +803,7 @@ QUEUED
 
 3.谈谈你对RDB持久化机制的理解？
 
-- 总述：RDB持久化它是把数据集通过快照的形式保存到我们磁盘上。
+- 总述：RDB持久化它是把数据集通过**快照的形式保存到我们磁盘**上。
 
 - 触发机制：
 
@@ -724,11 +826,11 @@ QUEUED
   优点：
 
   - rdb机制数据恢复速度比aof更快。
-  - rdb文件内容为二进制的数据，占用内存小，更加的紧凑，适合作为备份文件。
+  - rdb文件内容为**二进制**的数据，占用内存小，更加的紧凑，适合作为备份文件。
 
   缺点：
 
-  - 存在数据丢失的风险。我们知道数据持久化操作是需要在一定的时间间隔，如果这段时间间隔内Redis宕机了，那么数据会被丢失。
+  - **存在数据丢失的风险**。我们知道数据持久化操作是需要在一定的时间间隔，如果这段时间间隔内Redis宕机了，那么数据会被丢失。
 
 4.AOF
 
@@ -771,7 +873,7 @@ QUEUED
       auto-aof-rewrite-min-size 64mb
       #解释配置文件：当前AOF文件大于64MB，并且比上次重写的时候的体积大了一倍。
       #如果说之前没有重写过，那么上次重写时候的体积就是Redis启动的时候aof文件的大小。
-
+      
       # This is how it works: Redis remembers the size of the AOF file after the
       # latest rewrite (if no rewrite has happened since the restart, the size of
       # the AOF at startup is used).
@@ -807,7 +909,7 @@ QUEUED
 
 ### Redis主从复制
 
-1.高可用集群：我们知道单节点Redis服务，一旦服务down掉，那么整个Redis服务就不可用了。因此我们需要搭建高可用Redis服务集群，一般是一台主服务器，多台slave服务器。master复制写操作，而slave复制读的操作。
+1.高可用集群：我们知道单节点Redis服务，一旦服务down掉，那么整个Redis服务就不可用了。因此我们需要搭建高可用Redis服务集群，一般是一台主服务器，多台slave服务器。master负责写操作，而slave负责读的操作。
 
 2.主从复制：
 
@@ -823,7 +925,7 @@ QUEUED
 
     - 主结点执行完bgsave之后，将RDB文件发送给从节点。从结点收到RDB文件之后并解析其内容，把相应数据持久化。
 
-    - 主结点会把复制缓冲区里面的写命令发送给从结点，从结点会执行这些命令从而达到了主从服务器数据一致的效果。
+    - 主结点会把复制缓冲区里面的写命令发送给从结点，**从结点会执行这些命令从而达到了主从服务器数据一致的效果。**
 
       ![whole_replication](./resource/img/replication/whole_replication.png)
 
@@ -947,8 +1049,6 @@ QUEUED
 
 7.双缓存策略
 
-### 
-
 #### Hash一致性算法
 
 - 引入背景
@@ -1056,3 +1156,36 @@ QUEUED
 - 客户端执行一条写命令
 - Redis会检查内存使用大小，如果说使用的内存已经达到了maxmemory，那么就触发内存淘汰机制
 - 数据删除之后，在执行之前命令。
+
+
+
+# 问题
+
+## Redis为什么这么快
+
+- 操作完全基于内存，不需要磁盘IO。
+
+- 高效数据存储结构，哈希表，链表，跳表
+
+- 采用多路复用机制，用单线程来处理大量的网络请求。
+
+    - 多路复用：用一个线程来处理多个IO流，通过select和epoll来进行系统调用。有个线程监听事件，判断是读写还是建立连接，之后把事件让入到事件队列中交给不同的函数来处理。
+
+        ![](./resource/img/data_structure/event_listener.png)
+
+    - 事件是如何找到相应的处理函数
+
+        - 通过linux里面的**select和epoll检测到相应的套接字**，请求达到就会触发相应的事件。
+
+- **单线程指的是网络请求用一个线程处理（一个线程处理所有请求），其他模块比如说rdb持久化和aof的重写都是用的多线程。**
+
+## 为什么用Redis不用其他本地缓存
+
+- 缓存数据一致性
+    - 比如本地的Google Guava, 多实例情况下，数据不具备一致性，需要Spring Cloud Bus来实现多实例数据一致性
+    - **Redis在可用的集群架构模式**下，通过主从复制来实现多实例之间的数据一致性
+- 本地Service挂了，重启，重启之后本地缓存就没了，而Redis就有持久化的功能，重启之后缓存的数据还在
+- 本地缓存如果**内存占用**太大，可能会报OOM。
+
+## 分布式系统数据一致性问题怎么解决
+

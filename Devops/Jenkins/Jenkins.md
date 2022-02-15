@@ -56,11 +56,18 @@
 
 ## Jenkins启动停止即修改默认端口
 
-1.安装好Jenkins（**2.222.4**），在Jenkins安装目录修改jenkins.xml文件中的默认8080端口。改成8888.
+1.安装好Jenkins（**2.222.4**），在Jenkins安装目录修改jenkins.xml文件中的默认8080端口。改成8889.
 
-2.启动Jenkins：进入Jenkins安装目录执行: java -jar jenkins.war --httpPort=8888
+2.启动Jenkins：进入Jenkins安装目录执行: java -jar jenkins.war --httpPort=8889
 
-3.停止Jenkins服务：net stop jenkins
+3.通过UI界面访问jenkins：localhost:8889 
+
+4.登录jenkins dashboard: username/password: leo/liyong
+
+5.停止Jenkins服务
+
+- net stop jenkins
+- localhost:8889/exit -> 用post方法
 
 
 
@@ -82,6 +89,14 @@ sed -i 's/http:\/\/updates.jenkinsci.org\/download/https:\/\/mirrors.tuna.tsingh
 https://mirrors.tuna.tsinghua.edu.cn/jenkins/updates/update-center.json
 
 ![](./resource/mirror.PNG)
+
+### 本地下载特别慢怎么解决
+
+直接去jenkins中心下载插件，之后上传到本地jenkins里面即可
+
+https://wiki.jenkins-ci.org/display/JENKINS/Plugins
+
+- 系统管理（Manage Jenkins）--管理插件(Manage Plugins)--高级--上传插件即可
 
 ## Jenkins用户权限管理
 
@@ -364,7 +379,7 @@ JAVA_HOME, MAVEN_HOME, PATH+EXTRA
 
 - 它由Groovy脚本实现
 - 支持两种语法，声明式和脚本式的语法
-- 两种创建方法：可以直接在Web UI界面中输入脚本，也可以通过创建一个Jenkinsfile脚本文件放入项目源码库中。（推荐采用源码库进行控制）
+- 两种创建方法：可以直接在Web UI界面中输入脚本，也可gfile脚本文件放入项目源码库中。（推荐采用源码库进行控制）
 
 3.安装Pipeline插件
 
@@ -376,3 +391,55 @@ JAVA_HOME, MAVEN_HOME, PATH+EXTRA
 
 ![](./resource/pipeline/create_simple_declarative_pipeline.png)
 
+### 拉取代码
+
+```shell
+checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '3f624af7-f036-4691-9611-1b5de8c77971', url: 'git@github.com:MichaelRap/Maven_Test_Project.git']]])
+```
+
+
+
+### 编译打包
+
+```shell
+sh 'maven clean package'
+```
+
+
+
+### 部署
+
+- Tomcat启动：windows下面直接进入bin目录，双击startup.bat
+
+- UI界面查看部署的应用: config目录 -> server.xml 找到tomcat占用的端口号（localhost:8001）
+
+    `<Connector port="8001" protocol="HTTP/1.1"
+                   connectionTimeout="20000"
+                   redirectPort="8443" />`
+
+- windows停掉本地tomcat
+
+    - netstat -ano | findstr 8002
+    - 找到最后一列taskkill /pid xxx(知道listening的那一列的pid)
+
+![](./resource/pipeline/deploy.png)
+
+### 利用Jenkinsfile文件来对项目进行版本控制
+
+![](./resource/pipeline/jenkinsfile.png)
+
+
+
+## Jenkins项目构建触发器
+
+常用的四种触发器
+
+- 触发远程构建(Trigger builds remotely (e.g., from scripts))
+    - 设置一个Authorization Token，之后通过： JENKINS_URL`/job/test06_pipeline/build?token=`TOKEN_NAME` or /buildWithParameters?token=`TOKEN_NAME 去触发Jenkins Job
+- 其他工程构建后触发(Build after other projects are build)
+    - 当前jenkins job运行需要依赖其他jenkins job的执行。
+- 定时构建(Build Periodically)
+    - 分 时 日 月 周
+- 轮询SCM（Poll SCM）
+    - 当github里面的代码发生变动的时候会触发构建过程。
+    - 如果代码量大的话，轮询SCM方式开销很大，不建议使用

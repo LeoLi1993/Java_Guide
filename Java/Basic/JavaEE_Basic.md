@@ -323,7 +323,7 @@
 
 - 一个会话如何确保是同一个Session
 
-    - 每次请求头里面包含了Cookie，Coolie里面有个JSessionID，通过该JSessionID能够获取到一个唯一的Session信息。
+    - 每次请求头里面包含了Cookie，Cookie里面有个JSessionID，通过该JSessionID能够获取到一个唯一的Session信息。
 
 - Session应用场景
 
