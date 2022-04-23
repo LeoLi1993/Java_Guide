@@ -152,12 +152,12 @@ static class Entry extends WeakReference<ThreadLocal<?>> {
 
      ![](./resource/img/thread_local/thread_local_weak_reference.png)
 
-     - 解释：还是会。当前ThreadLocal使用完之后，引用被回收，同时由于Entry的Key是弱引用类型，因此在垃圾回收阶段，会把堆内存中的ThreadLocal对象回收掉,，所以Entry中的Key就变成null。但是，**只要当前线程没有被销毁，那么就存在一个强引用链**，当前线程引用到ThreadLocalMap ->Entry -> Value. 由于，Entry中的Key是null，但是Value又有值，但是该Entry永远都不会被访问到。因此还是会存在内存泄漏，因此需要手动调用ThreadLocal.remove()，删掉强引用。
+     - 解释：还是会。当前ThreadLocal使用完之后，引用被回收，同时由于Entry的Key是弱引用类型，因此在垃圾回收阶段，会把堆内存中的ThreadLocal对象回收掉,，所以Entry中的Key就变成null。但是，**只要当前线程没有被销毁，那么就存在一个强引用链**，当前线程引用到ThreadLocalMap ->Entry -> Value. 由于，Entry中的Key是null，但是Value又有值，但是该Entry永远都不会被访问到。因此还是会存在内存泄漏，**因此需要手动调用ThreadLocal.remove()，删掉强引用**。
 
 ### 内存泄漏的真正原因
 
 1. ThreadLocal使用完之后，没有调用其remove方法手动删除Entry
-2. 当前线程的生命周期和ThreadLocal的生命周期不一致
+2. 当前**线程的生命周期和ThreadLocal的生命周期不一致**
    - **解决：手动调用ThreadLocal的remove方法，手动删除Entry。**
 
 #### 为什么要使用弱引用

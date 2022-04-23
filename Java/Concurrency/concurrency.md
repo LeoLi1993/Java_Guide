@@ -144,15 +144,16 @@ public enum State {
 
 - **对象监视器锁。**多线程环境下控制资源同步访问，同步代码块是一个原子操作，**依赖于底层操作系统Mutex Lock实现。**
 - **对象内存结构/内存布局**
+    
     - 对象头：**64位操作系统占用16字节**
         - mark word: 包括锁的状态信息，对象的hash码，对象分代年龄。占用8字节。
         - klass word：指向实例对象的元数据信息的指针。开启指针压缩占用4字节，没开启占用8字节
             - ![](./Resource/img/synchronized/klass_pointer.jpg)
         
     - 对象实际数据：成员数据
-
+    
     - 对其填充：实例对象创建的时候会占用固定大小的空间，如果说对象的实际数据没有占满该空间，那么把剩余的空的位置自动填满。
-
+    
         ```
         com.example.springbootredis.com.leo.SynchronizeTest object internals:
          OFFSET  SIZE   TYPE DESCRIPTION                               VALUE
@@ -162,9 +163,9 @@ public enum State {
              12     4        (loss due to the next object alignment)
         Instance size: 16 bytes
         ```
-
+    
         
-
+    
         ```c++
         //  32 bits:
         //  --------
@@ -176,12 +177,12 @@ public enum State {
         //  unused:25 hash:31 -->| unused_gap:1   age:4    biased_lock:1 lock:2 (normal object)
         //  JavaThread*:54 epoch:2 unused_gap:1   age:4    biased_lock:1 lock:2 (biased object)
         ```
-
+    
     - 指针压缩：
-
+    
         - 64位JVM消耗的内存会比32位的要多大约1.5倍，这是因为对象指针在64位JVM下有更宽的寻址。对于那些将要从32位平台移植到64位的应用来说，平白无辜多了1/2的内存占用，这是开发者不愿意看到的。
         - 作用：**节约内存占用**
-
+    
 - 版本：
     - JDK1.6及其以前：synchronized是一把重量级锁，某个线程获取到锁之后，其他线程就处于阻塞状态，直到当前线程释放掉锁以后，处于阻塞队列中的线程会去竞争这把锁。竞争到锁的线程会发生线程切换，这个时候会调用操作系统函数使得**操作系统由用户态转成核心态**，这个操作是十分耗时的，因此JDK1.6以前synchronized效率是比较低下的。
         - 为什么操作系统的用户态和内核态转换是非常耗时的或者耗费资源的？
@@ -241,9 +242,9 @@ public enum State {
 
     - 构造函数通过传入的true或者false可以构造公平锁还是非公平锁。
 
-    - synchronized不可以中断，而ReentrantLock可以被中断。
+    - synchronized不可以中断，而**ReentrantLock可以被中断**。
 
-    - ReentranLock也可以实现可选择性通知
+    - ReentranLock也可以实现**可选择性通知**
 
 
 ### 生产者消费者模型，防止虚拟唤醒

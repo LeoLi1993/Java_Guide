@@ -332,7 +332,7 @@
 
 - Cookie禁用过后能否使用Session进行会话跟踪
 
-    - 可以，通过URL重写技术来实现。也就是在URL地址后面加上JSessionID，通过该JSessionID能够在服务器端获取到该Session的信息。
+    - 可以，**通过URL重写技术来实现**。也就是在URL地址后面加上JSessionID，通过该JSessionID能够在服务器端获取到该Session的信息。
 
 - **分布式Session同步**问题
 
@@ -340,7 +340,7 @@
         - client -> nginx -> 不同的server，用户第一次访问服务器端，session存放在Server A。下一次访问的请求头Cookie中携带了JSessionID，由于负载均衡策略，该请求被发往Server B处理，这个时候，用户就获取不到Session信息，就没有达到Session共享的目的。
     - 怎么解决
         - Session复制。缺点：数据复制需要占用大量的网络带宽，存在延时；
-        - Redis。Redis是基于内存的，读取速度块。缺点：系统复杂度增加，需要新写代码实现。
+        - **Redis**。Redis是基于内存的，读取速度块。缺点：系统复杂度增加，需要新写代码实现。
 
 ### 域属性空间对比
 
