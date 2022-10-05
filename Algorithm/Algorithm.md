@@ -178,3 +178,258 @@ public class Test
 
 ```
 
+## 查找给定数值以内的素数
+
+### 暴力解法
+
+- 思路
+
+  - 两层遍历 + isPrime 标记
+
+  - 从2到n遍历一次，第二次遍历从2开始，到第一次遍历的值结束，如果找到，则素数加1，没找到就轮询一次。
+
+    ```java
+    public class PrimeCount //暴力解法
+    {
+        public static void main(String[] args)
+        {
+            System.out.println(countPrime(1000));
+        }
+    
+        public static int countPrime(int number)
+        {
+    
+            if(0 > number)
+            {
+                System.out.println("Please input positive number");
+                return 0;
+            }
+            if(number == 1 || number == 0)
+            {
+                return 0;
+            }
+    
+            int primeNumber = 0;
+            for (int i = 2; i < number; i++)
+            {
+                boolean isPrime = true; //i default is prime number;
+                for(int j=2; j < i; j++)
+                {
+                    if(i%j == 0)
+                    {
+                        isPrime = false;
+                        break;
+                    }
+                }
+                if(isPrime)
+                {
+                    primeNumber++;
+                }
+            }
+    
+            return primeNumber;
+        }
+    
+    }
+    ```
+
+  - 时间复杂度：
+
+### 埃式筛选法
+
+- 思路
+
+  - **从2到n之间，找到合数（非素数），并把它剔除掉，统计素数的个数**
+
+  - 怎么找合数：2 * 2；2 * 3；2*4... 数值小于n; 3 * 3; 3 * 4...数值小于n
+
+    ```java
+    public static int eratosthenes(int n)
+    {
+        //true 代表素数
+        boolean[] isPrime = new boolean[n];
+        Arrays.fill(isPrime, true);
+    
+        int count = 0;
+        for(int i=2; i<n; i++)
+        {
+            if(isPrime[i])
+            {
+                count++;
+                for(int j=i * i; j<n; j+=i)
+                {
+                	isPrime[j] = false;
+                }
+            }
+        }
+        return count;
+    }
+    ```
+
+## 删除排序数组中的重复项（原地删除）
+
+- 题目：一个有序数组nums, 原地删除重复出现的元素，使每个元素只出现一次，返回删除后数组的新长度。
+
+- 思路：采用双指针算法来实现功能
+  - i & j 两个指针，i 从0开始，j从1开始，如果num[i] == num[j] 那么j++
+  - 如果num[i] != num[j] 那么 i++ 然后把num[i] = num[j];
+  - 最后肯定j先达到数组末尾，返回i+1的值就是元素个数
+  - 
+
+```java
+public class RemoveDuplicateNumber
+{
+    public static void main(String[] args)
+    {
+        System.out.println(removeDuplicateNumber(new int[]{0, 1, 2, 2, 3, 4}));
+    }
+
+    public static int removeDuplicateNumber(int[] array)
+    {
+        if(0 == array.length)
+        {
+            return 0;
+        }
+
+        int i = 0;
+        for(int j=1; j<array.length; j++)
+        {
+            if(array[j] != array[i])
+            {
+                i++;
+                array[i] = array[j];
+            }
+        }
+        return i+1;
+    }
+}
+```
+
+## 寻找数组中心下标
+
+- 题目：给定一个整数数组，请编写一个能够返回的数组的“中心下标”的方法，中心下标，左侧所有元素相加的和等于右侧所有元素相加的和，如果数组不存在**中心下标**，则返回-1，如果有多个中心下标则返回最靠近左边的那一个。
+
+- 思路：利用对称性，先计算出数组总和sum，设置total从左往右累加，sum递减，直到左边部分 == 右边部分，求出中心位置
+
+  - ![](./resource/img/array/central_index.png)
+
+  ```java
+  package algorithm.array;
+  
+  import java.util.Arrays;
+  
+  public class CentralIndex
+  {
+      public static void main(String[] args)
+      {
+          int[] input = new int[]{1,1,1,2};
+          //int[] data = {1,3,4,5,8};
+  
+          System.out.println(getIndex(input));
+      }
+  
+      public static int getIndex(int[] num)
+      {
+          int sum = 0;
+          int total = 0;
+          sum = Arrays.stream(num).sum();
+  
+          if(num.length > 2)
+          {
+              for(int i=0;i<num.length;i++)
+              {
+                  total += num[i];
+                  if(total == sum)
+                  {
+                      return i;
+                  }
+                  else
+                  {
+                      sum -= num[i];
+                  }
+              }
+          }
+          return -1;
+      }
+  }
+  
+  ```
+
+  
+
+## X的平方根
+
+- 题目：在不适用sqrt(x)函数的情况下，得到x的平方根的整数部分
+
+  - 解法1：二分查找
+
+  - 思路：双重指针，left = 0 & right = input
+
+    - 时间复杂度log(n)
+
+    ```java
+    public class Sqrt
+    {
+        public static void main(String[] args)
+        {
+            System.out.println(binarySearch(2));
+        }
+    
+        public static int binarySearch(int input)
+        {
+            int left = 0; 
+            int right = input;
+            int index = -1;
+            while(left <= right)
+            {
+                int mid = left + (right -left)/2;
+                if( mid * mid <= input)
+                {
+                    //因为要找小的值，因此index在这里赋值
+                    index = mid;
+                    left = mid + 1;
+                }
+                else
+                {
+                    right = mid - 1;
+                }
+            }
+            return index;
+        }
+    }
+    ```
+
+  - 解法二：牛顿迭代
+
+  - 思路：**input = n * n ->  (n + input/n)/2 不停递归，值最终会趋近于其平方根**
+
+  - ```java
+    public static int newtonIterate(int input, int n)
+    {
+        int index = (input/n + n)/2;
+        if(0 == input)
+        {
+            return input;
+        }
+        if(index == n) //这里终止预期值和最终值相等
+        {
+            return n;
+        }
+        return newtonIterate(input, index);
+    }
+    ```
+
+## 斐波那契数列
+
+- 题目：求给定斐波那契数列第n位的值；1,1,2,3,5,8...
+
+  - 解法一：暴力递归
+
+    ```java
+    ```
+
+    
+
+  - 解法二：去重递归
+
+  - 解法三：双指针迭代
