@@ -59,6 +59,11 @@
 - [idea中如何查看多个微服务](idea中如何查看多个微服务)
 - [微服务之间call不同提示奇怪错误](#微服务之间call不同提示奇怪错误)
 
+[SpringCloud Alibaba](#SpringCloud Alibaba)
+
+- [Nacos](#Nacos)
+- [Sentinel](#Sentinel)
+
 [微服务面试题目](#微服务面试题目)
 
 ## 微服务
@@ -1099,7 +1104,37 @@ java.net.ConnectException: Connection timed out: connect (local port 64469 to ad
 
   - ![](./resource/alibaba/sentinel/volumn_hot_key_configuration.png)
 
-# 微服务面试题目
+## Seata
+
+### 分布式事务
+
+- ![](./resource/alibaba/seata/distribution_system_transaction.png)
+
+- 多个数据库，数据源，怎么保证同一个事务的数据一致性问题？
+
+  - Seata
+    - 3 + 1组成
+    - 1 - 》 全局事务ID，无论你有多少个数据库，多少个数据源，在一个事务中，全局事务ID一定是唯一的。
+    - 3-》TC、TM、RM
+      - TC：事务协调器，负责和驱动全局事务的提交和回滚
+      - TM：事务管理器，**负责开启事务，发起事务的提交和回滚**
+      - RM：资源管理器，管理事务处理过程中的**资源**
+    - ![](./resource/alibaba/seata/transaction.png)
+
+  - @GlobalTransactional
+    - 用在业务方法上，即可实现分布式事务。
+
+# **微服务面试题目**
+
+## 微服务边界怎么确定，微服务怎么进行拆分
+
+- 拆分原则
+  - 高内聚，低耦合
+- **业务驱动**
+  - 根据业务拆分成一个一个小的服务
+  - 缺点：新增一个功能，可能会影响到多个服务，这样就违背低耦合的设计原则
+- **数据驱动**
+  - 
 
 ## SpringCloud有哪些组件
 
@@ -1170,7 +1205,7 @@ java.net.ConnectException: Connection timed out: connect (local port 64469 to ad
 - 微服务
   - 系统的功能拆分成一个一个小的服务。
 
-## 什么是服务雪崩，什么时候服务限流
+## 什么是服务雪崩，什么是服务限流
 
 - 服务雪崩
   - 在分布式调用调用链路中， A ->B -》C，C服务发生故障，导致B这边请求没法及时的相应，可能导致整个系统的资源耗尽
