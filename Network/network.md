@@ -1,4 +1,4 @@
-# 计算机网络
+# e计算机网络
 
 ## OSI 7层模型
 
@@ -8,15 +8,21 @@
 ![](./resource/img/osi/7_layers.png)
 
 - 物理层 -> 数据链路层 ->网络层 ->传输层 -》会话层-》表现层 -》 应用层
+
+  
+
 - 应用层
+  
   - 关心**业务逻辑**
+  
 - 表现层
   - 数据格式转换
   - ![](./resource/img/osi/presentation_layer.png)
 
 - 会话层
-  - **负责两个连网实体的连接**
-
+  
+- **负责两个连网实体的连接**
+  
 - 传输层
   - 数据从一个实体传输到另一个实体，**负责数据的拆分和封包**，不负责传输。
     - 数据拆分和重组
@@ -24,12 +30,15 @@
     - 管理连接
     - 流量控制
     - 端口寻址
+  
 - 网络层
   - 把**一个封包**从一个ip地址**传输**到另一个ip地址，网络传输
     - 路由
+  
 - 数据链路层
   - 确保**两个临近设备之间的数据传输**，并隐藏底层实现细节
     - 帧纠错
+  
 - 物理层
   - 真正对传输介质
     - 光纤，电缆，双绞线，蓝牙
@@ -41,7 +50,7 @@
 
 - 分层臃肿，并非每一层都必要
   - 例子
-    - 开发一个ping应用，没必要使用会话层，得到对方恢复即可，没比较建立会话连接。
+    - 开发一个ping应用，没必要使用会话层，等到对方恢复即可，没比较建立会话连接。
     - 也没必要使用表现层，由于回来的数据量小，没有必要做数据压缩，数据转换之类的操作。
 
 ## TCP/IP 5层模型
@@ -91,12 +100,13 @@
 
     - client -> FIN(FINISH) -> Server
     - Server -> ACK 我收到你的消息了，正在处理我手上的消息，处理完之后再关闭
-    - Server -> FIN -》client ,关闭server端连接
+    - Server -> FIN -》client ,准备关闭server端连接
     - client -》ack -》server，server端收到ack就断开连接，如果client等待2MSL之后还没有收到server端的回复，那么就关闭自己的连接
 
 - 为什么连接的时候是三次握手，关闭的时候却是四次挥手
-  - 因为server端收到client的FIN之后需要等server端所有报文都发送完之后才能发送FIN，因此FIN和ACK不能一起发送，因此会有四次的挥手
-
+  
+- 因为server端收到client的FIN之后需要等server端所有报文都发送完之后才能发送FIN，因此FIN和ACK不能一起发送，因此会有四次的挥手
+  
 - TCP数据传输
   - 数据拆分
     - 应用层数据太大无法一次传输完，因此需要进行拆分，拆分之后进行并行传输
@@ -149,3 +159,362 @@
 ## WhireShark抓包
 
 - 可以分析自己的API接口信息
+
+  
+
+## Socket编程
+
+![](./resource/img/socket/work_process.png)
+
+#### BIO
+
+- Server端代码
+
+  ```java
+  package org.example.bio;
+  
+  import org.apache.commons.lang3.StringUtils;
+  
+  import java.io.*;
+  import java.net.ServerSocket;
+  import java.net.Socket;
+  
+  public class RawHttpServer
+  {
+      public static void main(String[] args) throws IOException
+      {
+          ServerSocket serverSocket = new ServerSocket(8000);
+          while(true)
+          {
+              //Listens for a connection to be made to this socket and accepts it.
+              //The method blocks until a connection is made. 
+              //等待客户端连接
+              Socket socket = serverSocket.accept();
+              System.out.println("A socket was created.");
+  
+              BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+              String line = null;
+              while(StringUtils.isNotEmpty(line = bufferedReader.readLine()))
+              {
+                  System.out.println("server received: " + line);
+              }
+  
+              //把消息写给客户端
+              BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+              bufferedWriter.write("HTTP/1.1 200 ok \n\n Hello World.\n");
+              bufferedWriter.flush();;
+              socket.close();;
+          }
+      }
+  }
+  	
+  ```
+
+- client发起get请求
+
+  - ```shell
+    curl http://localhost:8000
+    ```
+
+    
+
+- 优化第一个server 端程序
+
+  ```java
+  package org.example.bio;
+  
+  import org.apache.commons.lang3.StringUtils;
+  
+  import java.io.*;
+  import java.net.ServerSocket;
+  import java.net.Socket;
+  import java.util.Optional;
+  import java.util.function.Function;
+  
+  public class OptimizedServer
+  {
+      ServerSocket serverSocket;
+  
+  	//第一个参数是input,第二个是output
+      Function<String, String> handler;
+  
+      public OptimizedServer(Function<String, String> handler)
+      {
+          this.handler = handler;
+      }
+  
+      public void listen(int port) throws IOException
+      {
+          serverSocket = new ServerSocket(port);
+          while(true)
+          {
+              this.accept();
+          }
+      }
+  
+      public void accept() throws IOException
+      {
+          //Listens for a connection to be made to this socket and accepts it.
+          //The method blocks until a connection is made.
+          Socket socket = serverSocket.accept();
+          System.out.println("A socket was created.");
+  
+          BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+          String line = null;
+          while(StringUtils.isNotEmpty(line = bufferedReader.readLine()))
+          {
+              System.out.println("server received: " + line);
+          }
+  
+          BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+          String response = this.handler.apply("");
+          bufferedWriter.write(response);
+          bufferedWriter.flush();;
+          socket.close();;
+      }
+  
+      public static void main(String[] args) throws IOException
+      {
+          OptimizedServer server = new OptimizedServer(req -> {
+                  return "HTTP/1.1 200 ok \n\n Hello World.";
+          });
+          server.listen(8000);
+  
+      }
+  }
+  
+  ```
+
+- 程序问题
+
+  - server端只有一个线程处理客户端的请求，并且也是同一个线程把数据发送给client
+
+  - 并发高的情况下，pending queue会满，会拒绝后续请求
+
+  - ![](./resource/img/socket/bio_problem.png)
+
+  - 解决
+
+    - 每次来一个请求，server端都创建一个线程去处理请求，这样提高程序的一个处理效率
+
+    - ```java
+      package org.example.bio;
+      
+      import org.apache.commons.lang3.StringUtils;
+      
+      import java.io.*;
+      import java.net.ServerSocket;
+      import java.net.Socket;
+      import java.util.Optional;
+      import java.util.function.Function;
+      
+      public class OptimizedServer
+      {
+          ServerSocket serverSocket;
+      
+          Function<String, String> handler;
+      
+          public OptimizedServer(Function<String, String> handler)
+          {
+              this.handler = handler;
+          }
+      
+          public void listen(int port) throws IOException
+          {
+              serverSocket = new ServerSocket(port);
+              while(true)
+              {
+                  accept();
+              }
+          }
+      
+          public void accept() throws IOException
+          {
+              //Listens for a connection to be made to this socket and accepts it.
+              //The method blocks until a connection is made.
+              //只有请求来了server端才会创建一个线程去处理请求
+              Socket socket = serverSocket.accept();
+              new Thread(()->{
+                  try
+                  {
+                      this.handle(socket);
+                  } catch (IOException e)
+                  {
+                      e.printStackTrace();
+                  }
+              }).start();
+          }
+          public void handle(Socket socket) throws IOException
+          {
+              System.out.println("A socket was created.");
+              BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+              String line = null;
+              while(StringUtils.isNotEmpty(line = bufferedReader.readLine()))
+              {
+                  System.out.println("server received: " + line);
+              }
+      
+              BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+              String response = this.handler.apply("");
+              bufferedWriter.write(response);
+              bufferedWriter.flush();;
+              socket.close();;
+          }
+      
+          public static void main(String[] args) throws IOException
+          {
+              OptimizedServer server = new OptimizedServer(req -> {
+                  try
+                  {
+                      //模拟访问db需要花费的时间
+                      Thread.sleep(10);
+                  } catch (InterruptedException e)
+                  {
+                      e.printStackTrace();
+                  }
+                  return "HTTP/1.1 200 ok \n\n Hello World.";
+              });
+              server.listen(8000);
+          }
+      }
+      
+      ```
+
+      - 结果：5000个并发扛得住，之前500都扛不住，这种方式的并发度还是跟机器配置有关。
+        - ![](./resource/img/socket/bio_problem_2.png)
+
+  - 再优化
+
+    - ```java
+      package org.example.bio;
+      
+      import org.apache.commons.lang3.StringUtils;
+      
+      import java.io.*;
+      import java.net.ServerSocket;
+      import java.net.Socket;
+      
+      public class Optimized2Server
+      {
+          ServerSocket serverSocket;
+      
+          IHandlerInterface handler;
+      
+          public Optimized2Server(IHandlerInterface handler)
+          {
+              this.handler = handler;
+          }
+      
+          public void listen(int port) throws IOException
+          {
+              serverSocket = new ServerSocket(port);
+              while(true)
+              {
+                  accept();
+              }
+          }
+      
+          public void accept() throws IOException
+          {
+              //Listens for a connection to be made to this socket and accepts it.
+              //The method blocks until a connection is made.
+              Socket socket = serverSocket.accept();
+              new Thread(()->{
+                  try
+                  {
+                      this.handle(socket);
+                  } catch (IOException e)
+                  {
+                      e.printStackTrace();
+                  }
+              }).start();
+          }
+      
+          public void handle(Socket socket) throws IOException
+          {
+              Request request = new Request(socket);
+              Response response = new Response(socket);
+              this.handler.handle(request, response);
+          }
+      
+          public static void main(String[] args) throws IOException
+          {
+              Optimized2Server server = new Optimized2Server((request, response) -> {
+                  response.send("HTTP/1.1 200 ok \n\n Hello World");
+              });
+              server.listen(8000);
+          }
+      }
+      
+      ```
+
+      ```java
+      package org.example.bio;
+      
+      import org.apache.commons.lang3.StringUtils;
+      
+      import java.io.BufferedReader;
+      import java.io.IOException;
+      import java.io.InputStreamReader;
+      import java.net.Socket;
+      
+      public class Request
+      {
+          public Request(Socket socket) throws IOException
+          {
+              handle(socket);
+          }
+      
+          public void handle(Socket socket) throws IOException
+          {
+              System.out.println("A socket was created.");
+              BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+              String line;
+              while(StringUtils.isNotEmpty(line = bufferedReader.readLine()))
+              {
+                  System.out.println("server received: " + line);
+              }
+          }
+      }
+      
+      ```
+
+      ```java
+      package org.example.bio;
+      
+      import java.io.BufferedWriter;
+      import java.io.IOException;
+      import java.io.OutputStreamWriter;
+      import java.net.Socket;
+      
+      public class Response
+      {
+      
+          Socket socket;
+          public Response(Socket socket) throws IOException
+          {
+              this.socket = socket;
+          }、
+          public void send(String msg) throws IOException
+          {
+              BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+              bufferedWriter.write(msg);
+              bufferedWriter.flush();;
+              socket.close();;
+          }
+      }
+      ```
+
+###### 缺点
+
+- 一个请求就需要创建一个线程，再高并发的场景下，会消耗过多的内存资源。
+
+#### NIO
+
+![](./resource/img/socket/nio.png)
+
+- ![](./resource/img/socket/nio_selector.png)
+
+###### 优点
+
+- **服务端采用一个线程，通过selector多路复用器，轮询的去读取客户端发往缓冲区的数据**。这样的话就减少了服务端创建多线程导致的资源消耗。
