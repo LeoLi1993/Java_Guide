@@ -662,3 +662,26 @@
 ![](./resource/img/http2.0/http_header_compression.jpg)
 
 ![](./resource/img/http2.0/http_header_compression_2.jpg)
+
+## 同源策略
+
+- 同源
+
+  - 域名，端口和协议相同的为同源
+
+- 同源策略
+
+  - 拒绝非同源的脚本或者文件进行交互，防止恶意文件的攻击
+
+- 如果想要访问不同源的数据，怎么解决
+
+  - JsonP
+
+  - CORS（跨域资源共享）
+
+    - 浏览器端先**发一个预检请求到服务端**，如果成功返回的话，下一次再发真正的请求到服务端
+
+      ![](./resource/img/cors/cors.png)
+
+- 代理
+  - 相比于CORS更快，因为不需要做一次预检
