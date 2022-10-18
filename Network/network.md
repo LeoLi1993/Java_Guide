@@ -518,3 +518,147 @@
 ###### 优点
 
 - **服务端采用一个线程，通过selector多路复用器，轮询的去读取客户端发往缓冲区的数据**。这样的话就减少了服务端创建多线程导致的资源消耗。
+
+
+
+## HTTP协议
+
+- Request
+  - Header
+  - Body
+- Response
+  - Header
+  - Body
+- Header
+  - Content-Length
+    - 发送、接收Body内容的字节数
+  - User-Agent
+    - 记录用了什么浏览器，操作系统。
+  - Content-Type
+    - 数据类型
+      - text/html -> HTML格式
+      - text/css -> CSS文本
+      - application/json: JSON格式数据
+      - image/jpeg: jpg图片格式
+      - text/plain: 纯文本格式
+  - Origin
+    - 请求来源地址
+  - Accept
+    -  建议服务器返回何种格式数据
+      - application/json,text/javascript,* / *
+      - */ * 代表任何类型 。
+  - Referer
+    - 打开当前页面的前一页面的URL
+  - Connection
+    - 决定当前HTTP连接是否在当前事务完成后关闭。
+  - keep-alive: 多次请求复用一个TCP连接
+    - Keep-Alive: timeout=5,max=1000(最多复用1千次)
+    - keep-alive是不是长连接
+    -  不是，基于websocket才是长连接
+
+### HTTP方法
+
+- GET/POST/PUT/DELETE
+- OPTION
+  - 跨域部分讲解
+- TRACE
+  - 用于显示调试信息，多数网站不支持
+- CONNECT
+  - 代理部分讲解
+- PATCH
+  - 对资源进行部分更新（极少用）
+
+### HTTP状态码
+
+- 1XX
+  - 提供信息
+- 2XX
+  - 成功
+  - 200 -》OK
+  - 201 -》创建成功
+  - 202 -》 Accepted 已接收
+  - 203 -》 非权威内容，比如：可能访问的是缓存中的内容
+  - 204 -》没有内容
+  - 205 -》 内容重置
+  - 206 -》服务端发了部分内容
+- 3XX
+  - 重定向
+
+- 4XX
+  - 客户端错误
+- 5XX
+  - 服务端错误
+
+![](./resource/img/http/url.jpg)
+
+### DNS
+
+- 域名解析系统
+
+![](./resource/img/http/dns.jpg)
+
+### DNS分级缓存
+
+![](./resource/img/http/dns_cache.png)
+
+![](./resource/img/http/dns_cache_2.png)
+
+### CDN
+
+- Content Delivery Network: 内容分发网络
+  - 将请求分发到全世界各地，分发流量，加快访问速度
+  - 缺点
+    - 无法部署业务逻辑，更新慢，无法保持一致性。
+  - 适合
+    - 部署静态资源，比如图片，视频，脚本文件。
+
+## 加密解密
+
+- 对称加密
+
+  - 加密解密**都用一个密钥**，加密方和解密方都知道这个密钥，比如3DES
+  - 缺点：密钥泄漏，很危险
+
+- 非对称加密
+
+  - 加密用一个密钥，解密用另一个密钥，公钥加密，私钥解密
+  - 特点：加密安全性高，但是速度慢，比如RSA算法
+
+- 摘要算法
+
+  - 将原文和摘要同时传给接收方
+
+  - md5,sha
+
+    ![](./resource/img/encryption_decryption/message_digest.png)
+
+  
+
+![](./resource/img/encryption_decryption/message_digest_process.png)
+
+![](./resource/img/encryption_decryption/certificate.png)
+
+![](./resource/img/encryption_decryption/certificate_chain.png)
+
+![](./resource/img/encryption_decryption/attack.png)
+
+## HTTP1.0 & HTTP2.0
+
+- HTTP1.1
+  - 多个请求复用一个TCP连接，如果其中一个请求阻塞，那么后续的请求也会被阻塞
+- HTTP2.0
+  - 采用多路复用技术，一个请求被阻塞，其他请求依然能够被处理
+
+![](./resource/img/http2.0/https.jpg)
+
+![](./resource/img/http2.0/work_process.jpg)
+
+![](./resource/img/http2.0/http_certificate.jpg)
+
+![](./resource/img/http2.0/http_keep_alive.jpg)
+
+![](./resource/img/http2.0/http2.jpg)
+
+![](./resource/img/http2.0/http_header_compression.jpg)
+
+![](./resource/img/http2.0/http_header_compression_2.jpg)
