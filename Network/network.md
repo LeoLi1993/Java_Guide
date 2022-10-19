@@ -18,7 +18,7 @@
     - [DNS分级缓存](#DNS分级缓存)
   - [CDN](#CDN)
 - [加密解密](#加密解密)
-- [HTTP1.0 & HTTP2.0](#HTTP1.0 & HTTP2.0)
+- [HTTP1.0 & HTTP2.0](#HTTP1.0&HTTP2.0)
 - [同源策略](#同源策略)
 - [面试题目](#面试题目)
   - [TCP/IP协议群做了哪些事情](#TCP/IP协议群做了哪些事情)
@@ -29,7 +29,7 @@
   - [CDN怎么更换图片，缓存怎么更新](#CDN怎么更换图片，缓存怎么更新)
   - [NIO优势](#NIO优势)
   - [一次DNS查询最快和最慢差距多大](#一次DNS查询最快和最慢差距多大)
-  - [HTTP keep-alive & http2.0的多路复用有什么区别](#HTTP keep-alive & http2.0的多路复用有什么区别)
+  - [HTTP keep-alive & http2.0的多路复用有什么区别](#HTTPkeep-alive&http2.0的多路复用有什么区别)
   - [正向代理和反向代理的区别](#正向代理和反向代理的区别)
 
 ## OSI-7层模型
@@ -747,7 +747,7 @@ public class NIOServer
 
 ![](./resource/img/encryption_decryption/attack.png)
 
-## HTTP1.0 & HTTP2.0
+## HTTP1.0&HTTP2.0
 
 - HTTP1.1
   - 多个请求复用一个TCP连接，如果其中一个请求阻塞，那么后续的请求也会被阻塞
@@ -865,7 +865,7 @@ public class NIOServer
 - 最慢
   - ISP（服务商）-》Root服务器 -》顶级域名服务器找 -》全为域名服务器找
 
-### HTTP keep-alive & http2.0的多路复用有什么区别
+### HTTPkeep-alive&http2.0的多路复用有什么区别
 
 - keep-alive是复用TCP连接，减少握手和挥手的时间，本质是串行
 - Http2.0采用多路复用技术，数据被拆分成多个小块发送，是并行的。
