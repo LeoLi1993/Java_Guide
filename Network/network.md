@@ -1,6 +1,38 @@
 # 计算机网络
 
-## OSI 7层模型
+- [OSI-7层模型](#OSI-7层模型)
+- [OSI-7层模型缺点](#OSI-7层模型缺点)
+- [TCP/IP-5层模型](#TCP/IP-5层模型)
+  - [TCP协议](#TCP协议)
+    - [TCP协议工作过程](#TCP协议工作过程)
+  - [IP协议](#IP协议)
+    - [IP协议架构](#IP协议架构)
+- [UDP协议](#UDP协议)
+- [Socket编程](#Socket编程)
+  - [BIO](#BIO)
+  - [NIO](#NIO)
+- [HTTP协议](#HTTP协议)
+  - [HTTP方法](#HTTP方法)
+  - [HTTP状态码](#HTTP状态码)
+  - [DNS](#DNS)
+    - [DNS分级缓存](#DNS分级缓存)
+  - [CDN](#CDN)
+- [加密解密](#加密解密)
+- [HTTP1.0 & HTTP2.0](#HTTP1.0 & HTTP2.0)
+- [同源策略](#同源策略)
+- [面试题目](#面试题目)
+  - [TCP/IP协议群做了哪些事情](#TCP/IP协议群做了哪些事情)
+  - [TCP协议为什么是3次握手4次挥手](#TCP协议为什么是3次握手4次挥手)
+  - [IPv4&IPv6区别](#IPv4&IPv6区别)
+  - [TCP和UDP不同之处](#TCP和UDP不同之处)
+  - [TCP怎么保证数据传输的顺序性](#TCP怎么保证数据传输的顺序性)
+  - [CDN怎么更换图片，缓存怎么更新](#CDN怎么更换图片，缓存怎么更新)
+  - [NIO优势](#NIO优势)
+  - [一次DNS查询最快和最慢差距多大](#一次DNS查询最快和最慢差距多大)
+  - [HTTP keep-alive & http2.0的多路复用有什么区别](#HTTP keep-alive & http2.0的多路复用有什么区别)
+  - [正向代理和反向代理的区别](#正向代理和反向代理的区别)
+
+## OSI-7层模型
 
 - Open  System Interconnection Reference Model,开放式系统互联模型
 - 网络规范标准框架
@@ -43,7 +75,7 @@
   - 真正对传输介质
     - 光纤，电缆，双绞线，蓝牙
 
-### OSI 7层模型缺点
+### OSI-7层模型缺点
 
 - 优点
   - 建立了规范，统一了网络传输标准模型
@@ -53,7 +85,7 @@
     - 开发一个ping应用，没必要使用会话层，等到对方恢复即可，没比较建立会话连接。
     - 也没必要使用表现层，由于回来的数据量小，没有必要做数据压缩，数据转换之类的操作。
 
-## TCP/IP 5层模型
+## TCP/IP-5层模型
 
 - 应用层 -> 数据从一个应用发往另一个应用
 - 传输层 -> 主机到主机之间的传输
@@ -519,6 +551,79 @@
 
 - **服务端采用一个线程，通过selector多路复用器，轮询的去读取客户端发往缓冲区的数据**。这样的话就减少了服务端创建多线程导致的资源消耗。
 
+```java
+package org.example.nio;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.*;
+import java.nio.charset.StandardCharsets;
+import java.util.Set;
+
+public class NIOServer
+{
+    ServerSocketChannel serverSocketChannel;
+    public static void main(String[] args) throws IOException
+    {
+        NIOServer nioServer = new NIOServer();
+        nioServer.listen(8000);
+    }
+
+
+    public void listen(int port) throws IOException
+    {
+        serverSocketChannel = ServerSocketChannel.open();
+        serverSocketChannel.bind(new InetSocketAddress(port));
+        //Reactor
+        serverSocketChannel.configureBlocking(false);
+
+        Selector selector = Selector.open();
+        serverSocketChannel.register(selector, serverSocketChannel.validOps(), null);
+
+        ByteBuffer byteBuffer = ByteBuffer.allocate(1024*16);
+        for(;;)
+        {
+            int numOfKeys = selector.select();
+            Set<SelectionKey> selectedKey = selector.selectedKeys();
+            for (SelectionKey selectionKey : selectedKey)
+            {
+                //处理连接事件
+                if(selectionKey.isAcceptable())
+                {
+                    SocketChannel channel = serverSocketChannel.accept();
+                    if(null == channel)
+                    {
+                        continue;
+                    }
+                    //Kernel -> map(Buffer) -> Channel -> User(Buffer)
+                    channel.configureBlocking(false);
+                    channel.register(selector, SelectionKey.OP_READ);
+                }
+                else
+                {
+                    //处理读写事件
+                    SocketChannel selectableChannel = (SocketChannel)selectionKey.channel();
+                    byteBuffer.clear();
+                    selectableChannel.read(byteBuffer);
+                    //Logic
+                    String request = new String(byteBuffer.array());
+
+
+                    byteBuffer.clear();
+                    byteBuffer.put("HTTP/1.1 200 ok \n\n Hello World.".getBytes(StandardCharsets.UTF_8));
+                    byteBuffer.flip();
+                    selectableChannel.write(byteBuffer);
+                    selectableChannel.close();;
+                }
+            }
+        }
+    }
+}
+
+```
+
 
 
 ## HTTP协议
@@ -597,7 +702,7 @@
 
 ![](./resource/img/http/dns.jpg)
 
-### DNS分级缓存
+#### DNS分级缓存
 
 ![](./resource/img/http/dns_cache.png)
 
@@ -684,4 +789,88 @@
       ![](./resource/img/cors/cors.png)
 
 - 代理
+  
   - 相比于CORS更快，因为不需要做一次预检
+
+## 面试题目
+
+### TCP/IP协议群做了哪些事情
+
+- 报文拆分 -》增加协议头 -》数据传输-》路由和寻址-》数据重组
+
+### TCP协议为什么是3次握手4次挥手
+
+- 三次握手建立连接
+  - client -> SYNC-> Server
+  - Server -》ACK & SYNC ->Client
+  - Clint -> ACK -> Server
+- 4次挥手
+  - Client -> FIN ->Server
+  - Server -> ACK -> Client
+  - Server -》FIN -》 Client
+    - 要等服务端处理完数据之后，才会发送一个FIN给client
+  - Client -》ACK -》Server
+
+### IPv4&IPv6区别
+
+- 地址不同
+  - IPv4是32位构成，地址大约有43亿，而IPv6是128位组成，IP地址范围大很多
+- 地址的格式不同
+  - IPv4是点分隔，IPv6是冒号分隔
+- 寻址方式不同
+  - IPv4是通过子网掩码计算网络地址，而IPv6是通过特定的方式对网络进行划分
+- DNS不同
+
+### TCP和UDP不同之处
+
+- 面向连接 vs 无连接
+
+- 可靠传输 vs 不可靠传输
+- 头的大小不同（大 vs 小）
+- 会话 vs 无会话
+- 面向字节流 vs 面向报文
+
+- 适用场景
+  - UDP：视频会议，IP电话
+  - TCP: 文件传输
+
+### TCP怎么保证数据传输的顺序性
+
+- TCP在数据传输的时候把数据拆分成一个个小的块，每个块由heade & payload组成，并在header上设置好序号，这样在接收的时候通过header上的序号对块进行重组排序，这样就保证了数据的顺序性。
+- 如果检查到数据完整，接收端就会发送一个ACK给发送端，否则不发送ACK，让发送端重新发送丢失的内容。
+
+### CDN怎么更换图片，缓存怎么更新
+
+- CDN是内容分发网络，目的是去中心化，client去找最近的服务器获取资源
+- 图片一般都是有缓存的，并且是按天计算，我们肯定等不及，那么我们只能用一张图片，换个URL去访问。
+- 把请求发往到某台服务器，通过中间服务器去慢慢更新其他服务器的缓存信息。
+
+### LRU
+
+- 缓存置换算法：当缓存数量满了的时候，再创建新的缓存条目，会删除最旧的那条缓存条目。
+
+### NIO优势
+
+- NIO 
+  - 非阻塞IO：
+    - 响应式模型+非阻塞设计方式**，一个线程通过selector多路复用器，采用轮询的方式处理客户端请求**，减少了线程之间的切换 
+    - 内核级别拷贝内存到JVM，减少了系统调用
+
+### 一次DNS查询最快和最慢差距多大
+
+- DNS采用**分级缓存策略**
+
+- 最快
+  - 本地浏览器缓存命中，期望80%以上命中
+- 最慢
+  - ISP（服务商）-》Root服务器 -》顶级域名服务器找 -》全为域名服务器找
+
+### HTTP keep-alive & http2.0的多路复用有什么区别
+
+- keep-alive是复用TCP连接，减少握手和挥手的时间，本质是串行
+- Http2.0采用多路复用技术，数据被拆分成多个小块发送，是并行的。
+
+### 正向代理和反向代理的区别
+
+- 正向代理发送方指导目标服务器的地址
+- 反向代理不知道真实的目标服务器的地址，可以把代理服务器和目标资源看成是一个整体
