@@ -43,6 +43,8 @@
     - Storm
   - 设计模式
       - [DesignPattern](./DesignPattern/DesignPattern.md)
+  - 操作系统
+      - [Operating_System](./Operating_System/Operating_System.md)
   - 计算机网路
       - [Network](./Network/network.md)
   - 面试
