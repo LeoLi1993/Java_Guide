@@ -21,41 +21,215 @@
     - 但是负数的值比正数多一个，因此整数类型的最小数取反就是它自己。0取反加一也是自己；
     - **符号位也要用于计算也需要取反**
 
-- 题目
+- 带符号右移动
 
-    - 程序打印某个int数字的32bit字符
+    - ```
+        >> ： 用符号位来补
+        ```
 
-    - ```java
-        package com.sap.csc.ems.leo;
-        
-        public class BitPrint
-        {
-            public static void main(String[] args)
-            {
-                BitPrint bitPrint = new BitPrint();
-                bitPrint.print(1);
-            }
-        
-            public void print(int num)
-            {
-                for(int i=32;i>0;i--)
-                {
-                    //1左移多少位和num进行与操作
-                    if( (num & 1<<i) == 0)
-                    {
-                        System.out.print("0");
-                    }
-                    else
-                    {
-                        System.out.print("1");
-                    }
-                }
-            }
-        }
-        
+- 不带符号右移
+
+    - ```
+        >>>：用0来补
         ```
 
         
+
+## 基础题目
+
+### 程序打印某个int数字的32bit字符
+
+- ```java
+    public class BitPrint
+    {
+        public static void main(String[] args)
+        {
+            BitPrint bitPrint = new BitPrint();
+            bitPrint.print(1);
+            bitPrint.print(3);
+        }
+    
+        public void print(int num)
+        {
+            for(int i=31;i>=0;i--)
+            {
+                //1左移多少位和num进行与操作
+                if( (num & 1<<i) == 0)
+                {
+                    System.out.print("0");
+                }
+                else
+                {
+                    System.out.print("1");
+                }
+            }
+            System.out.println();
+        }
+    }
+    ```
+
+### 计算阶乘
+
+- 请计算1！+2！+3！+ ... + n！
+
+  - 思路：sumAll = **当前阶乘的值**和前一个阶乘的值相加，依次累加
+
+  - ```java
+    package algorithm.basic;
+    
+    public class Factorial
+    {
+        public static void main(String[] args)
+        {
+            int data = 1;
+            int result = factorial(data);
+            System.out.println(result);
+        }
+    
+        public static int factorial(int data)
+        {
+            int sum = 0;
+            int temp = 1;
+            for(int i=1;i<=data;i++)
+            {
+                temp = temp * i; //表示当前的阶乘的值
+                sum += temp;
+            }
+            return sum;
+        }
+    }
+    ```
+
+    
+
+### 选择排序
+
+- 给定一个无序数组，请进行有序排列
+
+  - 思路
+
+    - 确定边界：数组为空或者长度小于2不需要排列
+
+    - 算法：一组数里面以第一个为基准，依次从后面取数和第一个数相比，如果比第一个数小，那么交换值，否则一直往下走，第一趟走完找出一个最小数放在第一位，以此类推
+
+      - 走完第1圈，外层0-n-1
+      - 走完第2圈，外层1-n-1
+      - 走完第3圈，外层2-n-1
+      - 内层跟外层一样的逻辑
+
+    - 时间复杂度O(n^2)
+
+    - ```java
+      package algorithm.basic;
+      
+      import java.util.Arrays;
+      
+      public class ChooseSort
+      {
+          public static void main(String[] args)
+          {
+              int[] array = {5,7,1,2,10,9};
+              System.out.print(Arrays.toString(array));
+              chooseSort(array);
+              System.out.println();
+              System.out.print(Arrays.toString(array));
+          }
+      
+          public static void chooseSort(int[] array)
+          {
+              //确立边界
+              int length = array.length;
+              if(null == array || length < 2)
+              {
+                  return;
+              }
+      
+              for(int i=0;i<length;i++)
+              {
+                  for(int j=i+1;j<length;j++)
+                  {
+                      if(array[i] > array[j])
+                      {
+                          //交换彼此的值
+                          int temp = 0;
+                          temp = array[i]; //被赋值的先赋值
+                          array[i] = array[j];
+                          array[j] = temp;
+                      }
+                  }
+              }
+      
+          }
+      }
+      ```
+
+      
+
+### 冒泡排序
+
+- 给定一个无序数组，请进行有序排列
+
+  - 思路：两数相比较依次，大的放后面，依次类推，走完第一趟，最大的数在尾部，依次类推。
+
+    - 边界限定
+    - 算法
+      - 走完第1圈，外层0-n-1
+      - 走完第2圈，外层0-n-2
+      - 走完第3圈，外层0-n-3
+      - 内层就相加，依次比较
+
+  - 时间复杂度O(n^2)
+
+  - ```java
+    package algorithm.basic;
+    
+    import java.util.Arrays;
+    
+    public class BubbleSort
+    {
+        public static void main(String[] args)
+        {
+            int[]  array= {10,34,2,6,9,1,6,7,7,7};
+            bubbleSort(array);
+            System.out.println(Arrays.toString(array));
+        }
+    
+        public static void bubbleSort(int[] array)
+        {
+            final int LENGTH = array.length;
+            if( null == array || LENGTH<2)
+            {
+                return ;
+            }
+    
+            for(int i=LENGTH-1;i>=0;i--)
+            {
+                for(int j=0;j<i;j++)
+                {
+                    if(array[j]>array[j+1])
+                    {
+                        int temp = 0;
+                        temp = array[j+1];
+                        array[j+1] = array[j];
+                        array[j]=temp;
+                    }
+                }
+            }
+    
+        }
+    }
+    /*
+    输出：
+    [10, 34, 2, 6, 9, 1, 6, 7, 7, 7]
+    [1, 2, 6, 6, 7, 7, 7, 9, 10, 34]
+    */
+    ```
+
+    
+
+### 插入排序
+
+- 给定一个无序数组，请进行有序排列
 
 ## 题目
 
@@ -482,9 +656,11 @@ public class RemoveDuplicateNumber
 
     ```java
     
+    ```
   ```
   
   
+  ```
   
 - 解法二：去重递归
   
