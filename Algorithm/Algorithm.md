@@ -231,6 +231,63 @@
 
 - 给定一个无序数组，请进行有序排列
 
+- 思路：从数组里面从左往右依次挑选一个数，插入到原数组，比左边小的则交换，比左边大的不交换
+
+  - 边界限定
+
+  - 数要一个一个取，外圈层0-n-1
+
+  - 当前数的位置是end，前一个数的位置是pre，互相比较，满足条件则交换，否则挑选下一个数目
+
+  - ```java
+    package algorithm.basic;
+    
+    import java.util.Arrays;
+    
+    public class InsertSort
+    {
+        public static void main(String[] args)
+        {
+            int[] array = {10,34,2,6,9,1,6,7,7,7};
+            System.out.println(Arrays.toString(array));
+            insertSort(null);
+            System.out.println(Arrays.toString(array));
+        }
+    
+        public static void insertSort(int[] array)
+        {
+            if(null == array || array.length < 2)
+            {
+                return;
+            }
+    
+            final int LENGTH = array.length;
+    
+            for(int i=0; i<LENGTH; i++)
+            {
+                int pre = i-1;
+                int end = i;
+                while(pre>=0 && array[end] < array[pre])
+                {
+                    int temp = 0;
+                    temp = array[pre];
+                    array[pre] = array[end];
+                    array[end] = temp;
+                    pre--;
+                    end--;
+                }
+            }
+        }
+    }
+    /*
+    输出
+    [10, 34, 2, 6, 9, 1, 6, 7, 7, 7]
+    [1, 2, 6, 6, 7, 7, 7, 9, 10, 34]
+    */
+    ```
+
+    
+
 ## 题目
 
 ### 二分查找算法
