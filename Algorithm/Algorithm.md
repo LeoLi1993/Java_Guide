@@ -1,6 +1,11 @@
 # Algorithm
 
 - [基础知识](#基础知识)
+    - [程序打印某个int数字的32bit字符](#程序打印某个int数字的32bit字符)
+    - [计算阶乘](#计算阶乘)
+    - [选择排序](#选择排序)
+    - [冒泡排序](#冒泡排序)
+    - [插入排序](#插入排序)
 - [题目](#题目)
     - [二分查找算法](#二分查找算法)
     - [原地算法对单链表进行重排序](#原地算法对单链表进行重排序)
@@ -33,7 +38,33 @@
         >>>：用0来补
         ```
 
-        
+### 时间复杂度
+
+- 最坏的情况下需要的**操作次数**，只看最高阶的
+- 选择排序，插入，冒泡排序时间复杂度O(n^2)
+- 二分查找算法时间复杂度O(logN)
+- 常数操作时间复杂度是O(1) 
+
+### 数组
+
+- 内存地址连续，便于寻址，通过偏移量查询数据很方便，但是对于插入和删除数据不方便
+- 插入和删除数据需要大量元素挪动位置
+
+### TreeMap
+
+- 有序表
+
+### 链表
+
+- 内存地址不连续，因此查询不方便，需要一个一个结点遍历，适合删除和添加元素
+
+## Java中的Math.Random函数
+
+- 返回一个[0,1)的随机数，但是随机数落在某个区间确实固定的
+- 比如落在[0,01]概率是0.1,落在[0,02]概率是0.2以此类推
+- 因此随机数落在[0,x)概率就是x
+
+
 
 ## 基础题目
 
@@ -74,6 +105,8 @@
 
   - 思路：sumAll = **当前阶乘的值**和前一个阶乘的值相加，依次累加
 
+      - 当前阶乘的值 = 当前值 * 前一个阶乘的值
+  
   - ```java
     package algorithm.basic;
     
@@ -97,9 +130,9 @@
             }
             return sum;
         }
-    }
+  }
     ```
-
+  
     
 
 ### 选择排序
@@ -176,7 +209,7 @@
       - 走完第1圈，外层0-n-1
       - 走完第2圈，外层0-n-2
       - 走完第3圈，外层0-n-3
-      - 内层就相加，依次比较
+      - 外层相减，内层相加，依次比较
 
   - 时间复杂度O(n^2)
 
@@ -279,14 +312,422 @@
             }
         }
     }
+    ```
+    
+    ```
     /*
     输出
     [10, 34, 2, 6, 9, 1, 6, 7, 7, 7]
-    [1, 2, 6, 6, 7, 7, 7, 9, 10, 34]
+[1, 2, 6, 6, 7, 7, 7, 9, 10, 34]
     */
     ```
-
     
+    
+
+### 数组范围求和
+
+- 给定一个数组，计算出从L到R的和
+
+- 思路
+
+    - 创建一个相同长度的数组preSum
+
+    - 新数组当前位置的值等于旧数组当前位置的值+之前所有位置的值的总和
+
+    - ```
+        [2,5,1,-7,10]
+        [2,7,8,-1,9]
+        ```
+
+        ```java
+        package class2;
+        
+        import util.Util;
+        
+        public class SumArrayPosition
+        {
+            public static void main(String[] args) throws Exception
+            {
+                int[] array = Util.generateRandomArray(50,100);
+                Util.loopArray(array);
+                System.out.println(calculateRangeValue(array, 1, 5));
+            }
+        
+            //计算L - R范围的累加和
+            public static int calculateRangeValue(int[] array, int left, int right) throws Exception
+            {
+                if (null == array)
+                {
+                    throw new Exception("no array found");
+                }
+                final int LENGTH = array.length;
+                if (left < 0 || right > LENGTH - 1 || left > right)
+                {
+                    throw new Exception("Please input correct parameter.");
+                }
+        
+                int leftSum = sum(array, left-1);
+                int rightSum = sum(array, right);
+                return rightSum - leftSum;
+            }
+        
+            public static int sum(int[]  array, int position)
+            {
+                int sum = 0;
+                for(int i=0;i<=position;i++)
+                {
+                    sum = sum + array[i];
+                }
+                return sum;
+            }
+        
+        }
+        ```
+
+        ```
+        /*
+        output:
+        57 44 83 68 47 73 48 20 30 56 
+        195
+        */
+        ```
+
+### 等概率
+
+- 给定一个函数f(x),它等概率返回1,2,3,4,5；请问怎么**通过f(x)等概率返回1-7上的数字**
+
+- 思路
+
+    - f(x)是个黑盒，想办法把f(x)做成一个等概率的0,1发生器
+
+    - 遇到1和2返回0，遇到4,5返回1，遇到3就重做
+
+    - 1-7需要3个二进制位来生成，2^2+2^1+2^0=7
+
+        - 000;001;010;011;100;101;111等概率生成 -》[0,7]
+        - 当遇到7的时候丢弃掉，重新生成其他数字 -》等概率生成[0,6]
+        - 上述等概率生成的结果+1-》等概率生成[1,7]
+
+    - ```java
+        package class2;
+        
+        public class SamePossibility
+        {
+            static final int TIMES = 1000000;
+            public static void main(String[] args)
+            {
+        
+                //calculateF1(TIMES);
+                //calculateF2(TIMES);
+                //calculateF3(TIMES);
+                calculateF4(TIMES);
+            }
+        
+            public static void calculateF1(final int times)
+            {
+                int array[] = new int[times];
+        
+                for(int i=0;i< times; i++)
+                {
+                    int value = f1();
+                    //统计每个数字出现的次数
+                    array[value]++;
+                }
+                for(int i=1;i<=5; i++)
+                {
+                    System.out.println( i + "出现了+ " + array[i] + "次");
+                }
+            }
+        
+            public static void calculateF2(final int times)
+            {
+                int array[] = new int[times];
+                for(int i=0;i< times; i++)
+                {
+                    int value = f2();
+                    //统计每个数字出现的次数
+                    array[value]++;
+                }
+        
+                for(int i=0;i<=1; i++)
+                {
+                    System.out.println( i + "出现了+ " + array[i] + "次");
+                }
+            }
+        
+            public static void calculateF3(final int times)
+            {
+                int array[] = new int[times];
+                for(int i=0;i< times; i++)
+                {
+                    int value = f3();
+                    //统计每个数字出现的次数
+                    array[value]++;
+                }
+        
+                for(int i=0;i<=6; i++)
+                {
+                    System.out.println( i + "出现了+ " + array[i] + "次");
+                }
+            }
+        
+            public static void calculateF4(final int times)
+            {
+                int array[] = new int[times];
+                for(int i=0;i< times; i++)
+                {
+                    int value = f4();
+                    //统计每个数字出现的次数
+                    array[value]++;
+                }
+        
+                for(int i=1;i<=7; i++)
+                {
+                    System.out.println( i + "出现了+ " + array[i] + "次");
+                }
+            }
+        
+            //等概率生成 1-5
+            public static int f1()
+            {
+                int data = (int)(Math.random() * 5)  + 1;
+                return data;
+            }
+        
+            //等概率0,1发生器
+            public static int f2()
+            {
+                int value = 0;
+                do
+                {
+                    value = f1();
+                    if(1==value || 2 == value)
+                    {
+                        value = 0;
+                    }
+                    else if(4==value || 5 == value)
+                    {
+                        value = 1;
+                    }
+                }while(value == 3);
+        
+                return value;
+            }
+        
+            //等概率返回[0,6]
+            public static int f3()
+            {
+                int value = -1;
+                do
+                {
+                    value = f2() + (f2()<<1) + (f2()<<2);
+                }while(value  == 7);
+                return value;
+            }
+        
+            //等概率返回[1,7]
+            public static int f4()
+            {
+                return f3() + 1;
+            }
+        
+        }
+        
+        ```
+
+        ```
+        1出现了+ 142932次
+        2出现了+ 142666次
+        3出现了+ 142535次
+        4出现了+ 142687次
+        5出现了+ 143336次
+        6出现了+ 142961次
+        7出现了+ 142883次
+        ```
+
+### 二分查找
+
+- 针对有序数组，查找value在数组中的位置，找到返回该数的位置，否则返回-1
+
+    - 思路
+
+        - 一直递归二分查找
+
+        - int mid = (left + right)/2
+
+        - ```java
+            public class Search
+            {
+                public static void main(String[] args)
+                {
+                    int[] array = Util.generateRandomArray(20,50);
+                    Util.quickSort(array);
+                    Util.loopArray(array);
+                    System.out.println(binarySearch(array, 10));
+                }
+            
+                public static int binarySearch(int[] array, int value)
+                {
+            
+                    if (null == array)
+                    {
+                        return -1;
+                    }
+            
+                    final int LENGTH = array.length;
+                    int left = 0;
+                    int right = LENGTH - 1;
+                    while (left <= right)
+                    {
+                        int middle = (left + right) / 2;
+                        if (value == array[middle])
+                        {
+                            return middle;
+                        }
+                        else if (value > array[middle])
+                        {
+                            left = middle + 1;
+                        }
+                        else
+                        {
+                            right = middle - 1;
+                        }
+                    }
+                    return -1;
+                }
+            }
+            ```
+
+            ```
+            1 2 3 11 14 17 20 23 25 27 29 31 37 38 38 40 42 43 
+            -1
+            ```
+
+#### 有序数组中找到大于等于num的最左数
+
+- 针对有序数组，找到大于等于num的最左边数的位置局部最小值，没找到返回-1
+
+    - eg：[1,2,4,4,7,9,10]，找4，返回结果是2
+
+    - 思路
+
+        - 利用二分法查找，找到值相等则记录该位置
+
+        - 继续向左二分查找，直到整个数组查找完，返回该位置，如果没有找到则返回-1
+
+        - ```java
+            public static int greaterThanOrEqualLeftValue(int[] array, int num)
+                {
+                    if(null == array)
+                    {
+                        return -1;
+                    }
+            
+                    int position = -1;
+                    final int LENGTH = array.length;
+                    int left = 0;
+                    int right = LENGTH - 1;
+            
+                    while(left <= right)
+                    {
+                        int middle = (left + right)/2;
+                        if(array[middle] == num)
+                        {
+                            position = middle;
+                        }
+                        //因为是找最左边，因此相等的时候还需要往左走
+                        if(num <= array[middle])
+                        {
+                            right = middle - 1;
+                        }
+                        if(num > array[middle])
+                        {
+                            left = middle + 1;
+                        }
+                    }
+                    return position;
+                }
+            ```
+
+
+
+#### 局部最小值
+
+- 给定一个**无序数组,且左右两边值不相等**,请找出一个局部最小值的位置，该值小于相邻左边的值且小于右边相邻的值
+
+    - eg：[1,2,1,3] ->局部最小值的位置是2
+
+    - 思路
+
+        - 利用二分查找算法，长度为1和2单独判断
+
+        - ```java
+            package class3;
+            
+            public class Search
+            {
+                public static void main(String[] args)
+                {
+                    int[] array = { 3,2,3,4,5};
+                    System.out.println(numLocal(array));
+                }
+            
+                public static int numLocal(int[] array)
+                {
+            
+                    if (null == array || array.length == 0)
+                    {
+                        return -1;
+                    }
+            
+                    final int LENGTH = array.length;
+                    if (LENGTH == 1)
+                    {
+                        return 0;
+                    }
+                    if (array[0] < array[1])
+                    {
+                        return 0;
+                    }
+                    if (array[LENGTH - 2] > array[LENGTH - 1])
+                    {
+                        return LENGTH - 1;
+                    }
+            
+                    int left = 0;
+                    int right = LENGTH - 1;
+                    while (left <= right)
+                    {
+                        int middle = (left + right) / 2;
+            
+                        if (array[middle] < array[middle + 1] && array[middle] < array[middle - 1])
+                        {
+                            return middle;
+                        }
+                        else
+                        {
+                            //不满足条件
+                            //middle > middle + 1 || middle > middle-1
+                            //middle> middle + 1 || middle < middle -1
+                            //middle < middle + 1 || middle > middle -1
+                            if (array[middle] > array[middle + 1])
+                            {
+                                left = middle + 1;
+                            }
+                            else if (array[middle] > array[middle - 1])
+                            {
+                                right = middle - 1;
+                            }
+                        }
+            
+                    }
+                    return -1;
+                }
+            }
+            
+            ```
+
+            
 
 ## 题目
 
