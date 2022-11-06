@@ -1,6 +1,20 @@
 # Algorithm
 
 - [基础知识](#基础知识)
+    - [时间复杂度](#时间复杂度)
+    - [数组](#数组)
+    - [TreeMap](#TreeMap)
+    - [链表](#链表)
+        - [单链表反转](#单链表反转)
+        - [单链表实现队列](#单链表实现队列)
+        - [单链表实现栈](#单链表实现栈)
+        - [K个结点组内逆序调整](#K个结点组内逆序调整)
+        - [链表相加](#链表相加)
+        - [有序链表合并](#有序链表合并)
+    - [双链表](#双链表)
+        - [双链表反转](#双链表反转)
+        - [双链表实现双端队列](#双链表实现双端队列)
+    - [Java中的Math.Random函数](#Java中的Math.Random函数)
     - [程序打印某个int数字的32bit字符](#程序打印某个int数字的32bit字符)
     - [计算阶乘](#计算阶乘)
     - [选择排序](#选择排序)
@@ -902,13 +916,14 @@
     
         }
     }
-    /*
-    输出：
+    
+    ```
+    
+    ```
     [10, 34, 2, 6, 9, 1, 6, 7, 7, 7]
     [1, 2, 6, 6, 7, 7, 7, 9, 10, 34]
-    */
-    ```
-
+```
+    
     
 
 ### 插入排序
@@ -964,83 +979,66 @@
     ```
     
     ```
-    /*
-    输出
     [10, 34, 2, 6, 9, 1, 6, 7, 7, 7]
     [1, 2, 6, 6, 7, 7, 7, 9, 10, 34]
-    */
     ```
-```
-    
-    
-
 ### 数组范围求和
 
-- 给定一个数组，计算出从L到R的和
-
+-  给定一个数组，计算出从L到R的和
 - 思路
-
     - 创建一个相同长度的数组preSum
-
     - 新数组当前位置的值等于旧数组当前位置的值+之前所有位置的值的总和
 
-    - ```
-        [2,5,1,-7,10]
-        [2,7,8,-1,9]
+```java
+package class2;
+import util.Util;
+
+public class SumArrayPosition
+{
+    public static void main(String[] args) throws Exception
+    {
+        int[] array = Util.generateRandomArray(50,100);
+        Util.loopArray(array);
+        System.out.println(calculateRangeValue(array, 1, 5));
+    }
+
+//计算L - R范围的累加和
+public static int calculateRangeValue(int[] array, int left, int right) throws Exception
+{
+    if (null == array)
+    {
+    	throw new Exception("no array found");
+    }
+    final int LENGTH = array.length;
+    if (left < 0 || right > LENGTH - 1 || left > right)
+    {
+    	throw new Exception("Please input correct parameter.");
+    }
+
+    int leftSum = sum(array, left-1);
+    int rightSum = sum(array, right);
+    return rightSum - leftSum;
+}
+
+    public static int sum(int[]  array, int position)
+    {
+        int sum = 0;
+        for(int i=0;i<=position;i++)
+        {
+            sum = sum + array[i];
+        }
+        return sum;
+    }
+
+}
 ```
 
-        ```java
-        package class2;
-        
-        import util.Util;
-        
-        public class SumArrayPosition
-        {
-            public static void main(String[] args) throws Exception
-            {
-                int[] array = Util.generateRandomArray(50,100);
-                Util.loopArray(array);
-                System.out.println(calculateRangeValue(array, 1, 5));
-            }
-        
-            //计算L - R范围的累加和
-            public static int calculateRangeValue(int[] array, int left, int right) throws Exception
-            {
-                if (null == array)
-                {
-                    throw new Exception("no array found");
-                }
-                final int LENGTH = array.length;
-                if (left < 0 || right > LENGTH - 1 || left > right)
-                {
-                    throw new Exception("Please input correct parameter.");
-                }
-        
-                int leftSum = sum(array, left-1);
-                int rightSum = sum(array, right);
-                return rightSum - leftSum;
-            }
-        
-            public static int sum(int[]  array, int position)
-            {
-                int sum = 0;
-                for(int i=0;i<=position;i++)
-                {
-                    sum = sum + array[i];
-                }
-                return sum;
-            }
-        
-        }
-        ```
-    
-        ```
-        /*
-        output:
-        57 44 83 68 47 73 48 20 30 56 
-        195
-        */
-        ```
+```
+57 44 83 68 47 73 48 20 30 56 
+195
+```
+
+
 
 ### 等概率
 
