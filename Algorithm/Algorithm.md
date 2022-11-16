@@ -31,8 +31,23 @@
 - 运算符
 
     - 左移：<<
+
     - 右移：>>
+
     - 取反：~
+
+    - 异或：^
+
+        - 无进位相加
+
+            - ```
+                00100110
+                01110111
+                结果
+                01010001
+                ```
+
+                
 
 - 补码
 
@@ -371,93 +386,94 @@
 - ![](./resource/img/linkedlist/k_group_arrange.png)
 
 - 思路
-    - 按照k个结点进行分组，返回k个元素最后一个元素，如果不能凑齐k个元素则返回null -> Node getKGroup(Node start, int k)
-    - 每组逆序，数量不够则不逆序，返回头结点 ->void reverse(Node start, Node end)
+    - 按照k个结点进行**分组**，返回k个元素最后一个元素，如果不能凑齐k个元素则返回null -> Node getKGroup(Node start, int k)
+    - 每组**逆序**，数量不够则不逆序，返回头结点 ->void reverse(Node start, Node end)
+        - 逆序的时候记录最后一个元素的下一个元素，这样下一组元素不够，可以直接返回
     - 头结点指向下一个元素，循环分组逆序
     - ![](./resource/img/linkedlist/k_group_thought.png)
     - ![](./resource/img/linkedlist/k_group_thought_2.png)
     - ![](./resource/img/linkedlist/k_group_thought_3.png)
-    
+
     ```java
     public static class ReverseGroup
+    {
+        public static void main(String[] args)
         {
-            public static void main(String[] args)
-            {
-                Node head = Node.constructNode(10);
-                Node.loopNode(head);
+            Node head = Node.constructNode(10);
+            Node.loopNode(head);
     
-                Node newHead = reverseGroup(head, 3);
-                Node.loopNode(newHead);
+            Node newHead = reverseGroup(head, 3);
+            Node.loopNode(newHead);
+        }
+    
+        //得到k分组最后一个元素，如果没空则返回null
+        public static Node getKGroup(Node start, int k)
+        {
+            while(--k > 0 && start != null)
+            {
+                start = start.next;
             }
+            return start;
+        }
     
-            //得到k分组最后一个元素，如果没空则返回null
-            public static Node getKGroup(Node start, int k)
+        // 1->2->3->4  -> 3 -> 2 -> 1 ->4
+        public static void reverse(Node start, Node end)
+        {
+            Node tail = end.next;
+            Node next = null;
+            Node pre = null;
+            Node cur = start;
+    
+            while(cur != tail)
             {
-                while(--k > 0 && start != null)
-                {
-                    start = start.next;
-                }
-                return start;
+                next = cur.next;
+                cur.next = pre;
+                pre = cur;
+                cur = next;
             }
+            start.next = tail;
+        }
     
-            // 1->2->3->4  -> 3 -> 2 -> 1 ->4
-            public static void reverse(Node start, Node end)
+        public static Node reverseGroup(Node head, int k)
+        {
+            Node start = head;
+            Node end = getKGroup(start, k);
+            //第一组凑不齐，直接返回head
+            if(null == end)
             {
-                Node tail = end.next;
-                Node next = null;
-                Node pre = null;
-                Node cur = start;
-    
-                while(cur != tail)
-                {
-                    next = cur.next;
-                    cur.next = pre;
-                    pre = cur;
-                    cur = next;
-                }
-                start.next = tail;
+                return head;
             }
+            //以end为头进行分组反转
+            head = end;
     
-            public static Node reverseGroup(Node head, int k)
+            Node lastEndStart = start;
+            reverse(start, end);
+    
+            while(null != lastEndStart.next)
             {
-                Node start = head;
-                Node end = getKGroup(start, k);
-                //第一组凑不齐，直接返回head
+                start = lastEndStart.next;
+                end = getKGroup(start, k);
                 if(null == end)
                 {
                     return head;
                 }
-                //以end为头进行分组反转
-                head = end;
-    
-                Node lastEndStart = start;
-                reverse(start, end);
-    
-                while(null != lastEndStart.next)
+                else
                 {
-                    start = lastEndStart.next;
-                    end = getKGroup(start, k);
-                    if(null == end)
-                    {
-                        return head;
-                    }
-                    else
-                    {
-                        reverse(start, end);
-                        lastEndStart.next = end;
-                        lastEndStart = start;
-                    }
+                    reverse(start, end);
+                    lastEndStart.next = end;
+                    lastEndStart = start;
                 }
-                return head;
             }
+            return head;
         }
+    }
     ```
-    
+
     ```
     0 1 2 3 4 5 6 7 8 9 
     2 1 0 5 4 3 8 7 6 9 
     ```
-    
+
     
 
 ##### 链表相加
@@ -465,15 +481,208 @@
 - ![](./resource/img/linkedlist/plus_linkedlist.png)
 - 思路
     - 谁更长，在更长的链表中更新运算后的值
-    - 运算需要考虑进位，设置进位符
+        - L & S链表都有元素
+        - L有S没有元素
+        - L和S都没有元素，只计算进位符
+    - 设置进位符
     - 长结点最后一个是9，前面相加之后再来一个进位符，因此需要记录长链表最后一个结点是谁，由它链接一个进位的结点
     - ![](./resource/img/linkedlist/3_phase.png)
+
+```java
+package basic.class4;
+
+import util.SingleNode;
+import util.Util;
+
+public class PlusTwoLinkedList
+{
+    public static void main(String[] args)
+    {
+        SingleNode headOne = Util.generateRandomSingleLinkedList(10);
+        Util.loopLinkedList(headOne);
+        SingleNode headTwo = Util.generateRandomSingleLinkedList(20);
+        Util.loopLinkedList(headTwo);
+
+        SingleNode newHead = plusTwoSingleLinkedList(headOne, headTwo);
+        Util.loopLinkedList(newHead);
+
+    }
+
+    public static int getSingleLinkedListLength(SingleNode head)
+    {
+        int length = 0;
+        while (head != null)
+        {
+            head = head.next;
+            length++;
+        }
+        return length;
+    }
+
+    public static SingleNode plusTwoSingleLinkedList(SingleNode headOne, SingleNode headTwo)
+    {
+        SingleNode<Integer> longSingleLinkedList = getSingleLinkedListLength(headOne) >= getSingleLinkedListLength(headTwo) ? headOne : headTwo;
+        SingleNode<Integer> shortSingleLinkedList = getSingleLinkedListLength(headOne) < getSingleLinkedListLength(headTwo) ? headOne : headTwo;
+
+        //进位符
+        int carry = 0;
+        //记录最后一个元素的位置，如果最终要生成一个新的元素，那么需要该元素指向新结点
+        SingleNode lastEnd = null;
+        //副本，通过副本遍历cur，最终求和的值覆盖longSingleLinkedList
+        //让longSingleLinkedList位置在head，这样可以最后遍历其得到最终结果
+        SingleNode<Integer> curL = longSingleLinkedList;
+        SingleNode<Integer> curS = shortSingleLinkedList;
+
+        //第一阶段长短量表都有元素，遍历到短链表没有元素位置
+        while (null != curS)
+        {
+            int value = curL.value + curS.value + carry;
+            curL.value = value % 10;
+            carry = value / 10;
+            //记录最后一个元素
+            lastEnd = curL;
+            curL = curL.next;
+            curS = curS.next;
+        }
+
+        //第二阶段长链表有元素，短链表没有
+        while (null != curL)
+        {
+            int value = curL.value + carry;
+            curL.value = value % 10;
+            carry = value / 10;
+
+            lastEnd = curL;
+            curL = curL.next;
+        }
+
+        //第三阶段只有进位符
+        if (carry != 0)
+        {
+            lastEnd.next = new SingleNode(carry);
+        }
+
+        return longSingleLinkedList;
+    }
+
+}
+```
+
+```
+5 7 3 5 3 3 5 5 
+9 9 7 9 8 8 4 
+4 7 1 5 2 2 0 6 
+```
+
+
 
 ##### 有序链表合并
 
 - ![](./resource/img/linkedlist/merge_linkedlist.png)
 - 思路
-    - 
+    
+    - 创建head结点记录返回结果，其指向第一个元素最小的链表
+    
+    - pre,cur1 & cur2用来遍历，cur1是head.next
+    
+    - 当cur1&&cur2都不空的时候，遍历两者;否则退出, pre.next指向不空的结点
+    
+        - ```java
+            package basic.class4;
+            
+            import util.SingleNode;
+            import util.Util;
+            
+            public class CombineTwoLinkedList
+            {
+                public static void main(String[] args)
+                {
+                    SingleNode head1 = constructSingleNode1();
+                    Util.loopLinkedList(head1);
+                    SingleNode head2 = constructSingleNode2();
+                    Util.loopLinkedList(head2);
+            
+                    SingleNode newHead = combineTwoLinkedList(head1, head2);
+                    Util.loopLinkedList(newHead);
+                }
+            
+                public static SingleNode constructSingleNode1()
+                {
+                    SingleNode head = new SingleNode(1);
+                    SingleNode node1 = new SingleNode(2);
+                    SingleNode node2 = new SingleNode(4);
+                    head.next = node1;
+                    node1.next = node2;
+                    return head;
+                }
+            
+                public static SingleNode constructSingleNode2()
+                {
+                    SingleNode head = new SingleNode(2);
+                    SingleNode node1 = new SingleNode(2);
+                    SingleNode node2 = new SingleNode(4);
+                    SingleNode node3 = new SingleNode(5);
+                    head.next = node1;
+                    node1.next = node2;
+                    node2.next = node3;
+                    return head;
+                }
+            
+                public static SingleNode combineTwoLinkedList(SingleNode<Integer> head1, SingleNode<Integer> head2)
+                {
+                    if(null == head1)
+                    {
+                        return head2;
+                    }
+                    if(null == head2)
+                    {
+                        return head1;
+                    }
+            
+                    SingleNode<Integer> head = head1.value <= head2.value ? head1 : head2;
+                    SingleNode<Integer> cur1 = head1.next;
+                    SingleNode<Integer> cur2 = head2;
+                    SingleNode<Integer> pre = head;
+            
+                    while(cur1 != null && cur2 != null)
+                    {
+                        if(cur1.value <= cur2.value)
+                        {
+                            pre.next = cur1;
+                            cur1 = cur1.next;
+                        }
+                        else
+                        {
+                            pre.next = cur2;
+                            cur2 = cur2.next;
+                        }
+                        pre = pre.next;
+                    }
+                    if(cur1 == null)
+                    {
+                        pre.next = cur2;
+                    }
+                    else if(null == cur2)
+                    {
+                        pre.next = cur1;
+                    }
+            
+                    return head;
+                }
+            
+            
+            
+            }
+            	
+            ```
+    
+            ```
+            1 2 4 
+            2 2 4 5 
+            1 2 2 2 4 4 5 
+            ```
+    
+            
 
 #### 双链表
 
@@ -723,7 +932,280 @@
         尾出队 5 4 3 0 1 2 
         ```
 
+### 二叉树
+
+- 先序遍历：根-》左-》右
+
+- 中序遍历：左-》根-》右
+
+- 后序遍历：左-》右-》根
+
+    - 先序，中序，后续遍历
+
+    - ```java
+        package basic.class6;
         
+        public class BinaryTree
+        {
+            public static class BTree
+            {
+                private int value;
+                private BTree lChild;
+                private BTree rChild;
+        
+                public BTree(int value)
+                {
+                    this.value = value;
+                }
+        
+                public static void preLoop(BTree bTree)
+                {
+                    if(null == bTree)
+                    {
+                        return;
+                    }
+                    System.out.print(bTree.value + " ");
+                    preLoop(bTree.lChild);
+                    preLoop(bTree.rChild);
+                }
+        
+                public static void middleLoop(BTree bTree)
+                {
+                    if(null == bTree)
+                    {
+                        return;
+                    }
+                    middleLoop(bTree.lChild);
+                    System.out.print(bTree.value + " ");
+                    middleLoop(bTree.rChild);
+                }
+        
+                public static void postLoop(BTree bTree)
+                {
+                    if(null == bTree)
+                    {
+                        return;
+                    }
+                    postLoop(bTree.lChild);
+                    postLoop(bTree.rChild);
+                    System.out.print(bTree.value + " ");
+                }
+            }
+        
+            public static void main(String[] args)
+            {
+                BTree root = new BTree(1);
+                root.lChild = new BTree(2);
+                root.rChild = new BTree(3);
+                root.lChild.lChild = new BTree(4);
+                root.lChild.rChild = new BTree(5);
+                root.rChild.lChild = new BTree(6);
+                root.rChild.rChild = new BTree(7);
+                System.out.println("preLoop...");
+                BTree.preLoop(root);
+                System.out.println("\nmiddleLoop...");
+                BTree.middleLoop(root);
+                System.out.println("\npostLoop...");
+                BTree.postLoop(root);
+            }
+        }
+        
+        ```
+
+        ```
+        preLoop...
+        1 2 4 5 3 6 7 
+        middleLoop...
+        4 2 5 1 6 3 7 
+        postLoop...
+        4 5 2 6 7 3 1
+        ```
+
+#### 判断两棵树是否相同
+
+- 思路
+
+    - 采用先序递归比较每个结点的值，如果发现有不同的返回false，如果相同则递归，一直递归到二者都没有结点
+
+    - ```java
+        package basic.class6;
+        
+        public class BinaryTree
+        {
+            public static class BTree
+            {
+                private int value;
+                private BTree lChild;
+                private BTree rChild;
+        
+                public BTree(int value)
+                {
+                    this.value = value;
+                }
+        
+                public static boolean isSameTree(BTree p, BTree q)
+                {
+                    if((p == null) ^ (q == null))
+                    {
+                        return false;
+                    }
+        
+                    if(null == p && q == null)
+                    {
+                        return true;
+                    }
+        
+                    return p.value == q.value && isSameTree(p.lChild, q.lChild) && isSameTree(p.rChild, q.rChild);
+                }
+            }
+        
+            public static void main(String[] args)
+            {
+                BTree root = new BTree(1);
+                root.lChild = new BTree(2);
+                root.rChild = new BTree(3);
+                root.lChild.lChild = new BTree(4);
+                root.lChild.rChild = new BTree(5);
+                root.rChild.lChild = new BTree(6);
+                root.rChild.rChild = new BTree(7);
+               
+                BTree root2 = new BTree(1);
+                root2.lChild = new BTree(2);
+                root2.rChild = new BTree(3);
+                root2.lChild.lChild = new BTree(4);
+                root2.lChild.rChild = new BTree(5);
+                root2.rChild.lChild = new BTree(6);
+                root2.rChild.rChild = new BTree(7);
+                
+                System.out.println(BTree.isSameTree(root, root2));
+            }
+        }
+        
+        ```
+
+        ```
+        true
+        ```
+
+#### 判断两棵树是否是镜面树
+
+![](./resource/img/binaryTree/mirror_tree.png)
+
+- 思路
+
+    - 递归思想，把一棵树拆成两棵树进行比较，p.lChild 和q.rChild比较，p.rChild和q.lChild比较
+
+    - ```java
+        package basic.class6;
+        
+        public class BinaryTree
+        {
+            public static class BTree
+            {
+                private int value;
+                private BTree lChild;
+                private BTree rChild;
+        
+                public BTree(int value)
+                {
+                    this.value = value;
+                }
+        
+                public static boolean isSymmetric(BTree root)
+                {
+                    return isMirror(root, root);
+                }
+        
+                public static boolean isMirror(BTree p, BTree q)
+                {
+                    if(null == p ^ null == q)
+                    {
+                        return false;
+                    }
+                    if(null == p && null == q)
+                    {
+                        return true;
+                    }
+        
+                    return p.value == q.value && isMirror(p.lChild, q.rChild) && isMirror(p.rChild, q.lChild);
+                }
+            }
+        
+            public static void main(String[] args)
+            {
+                BTree root2 = new BTree(1);
+                root2.lChild = new BTree(2);
+                root2.rChild = new BTree(2);
+                root2.lChild.lChild = new BTree(4);
+                root2.lChild.rChild = new BTree(5);
+                root2.rChild.lChild = new BTree(5);
+                root2.rChild.rChild = new BTree(4);
+                System.out.println(BTree.isSymmetric(root2));
+            }
+        }
+        
+        ```
+
+        ```
+        true
+        ```
+
+#### 树的最大深度或者高度
+
+- 采用递归，树的最大深度=max(maxDepth(左树) , maxDepth(右树)) + 1
+
+- ```java
+    package basic.class6;
+    
+    public class BinaryTree
+    {
+        public static class BTree
+        {
+            private int value;
+            private BTree lChild;
+            private BTree rChild;
+    
+            public BTree(int value)
+            {
+                this.value = value;
+            }
+    
+           
+            public static int maxDepth(BTree root)
+            {
+                if(root == null)
+                {
+                    return 0;
+                }
+    
+                return Math.max(maxDepth(root.lChild), maxDepth(root.rChild)) + 1;
+            }
+        }
+    
+        public static void main(String[] args)
+        {
+            BTree root = new BTree(1);
+            root.lChild = new BTree(2);
+            root.rChild = new BTree(3);
+            root.lChild.lChild = new BTree(4);
+            root.lChild.rChild = new BTree(5);
+            root.rChild.lChild = new BTree(6);
+            root.rChild.rChild = new BTree(7);
+            root.rChild.rChild.rChild = new BTree(8);
+            
+            System.out.println(BTree.maxDepth(root));
+        }
+    }
+    
+    ```
+
+    ```
+    4
+    ```
+
+#### 通过先序和中序遍历的位置构造一棵树
+
+- 采用递归思想
 
 ## Java中的Math.Random函数
 
@@ -922,9 +1404,7 @@
     ```
     [10, 34, 2, 6, 9, 1, 6, 7, 7, 7]
     [1, 2, 6, 6, 7, 7, 7, 9, 10, 34]
-```
-    
-    
+    ```
 
 ### 插入排序
 
@@ -938,7 +1418,8 @@
 
   - 当前数的位置是end，前一个数的位置是pre，互相比较，满足条件则交换，否则挑选下一个数目
 
-  - ```java
+```java
+
     package algorithm.basic;
     
     import java.util.Arrays;
@@ -976,12 +1457,10 @@
             }
         }
     }
-    ```
-    
-    ```
+```
+
     [10, 34, 2, 6, 9, 1, 6, 7, 7, 7]
     [1, 2, 6, 6, 7, 7, 7, 9, 10, 34]
-    ```
 ### 数组范围求和
 
 -  给定一个数组，计算出从L到R的和
@@ -1375,7 +1854,9 @@ public static int calculateRangeValue(int[] array, int left, int right) throws E
             
             ```
 
-            
+### 优先级队列
+
+- 给定3个链表，请把它们按照值的大小排好序串起来。
 
 ## 题目
 
