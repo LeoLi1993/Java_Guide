@@ -1210,9 +1210,65 @@ public class PlusTwoLinkedList
 ![](./resource/img/binaryTree/find_head.png)
 
 - 采用递归思想
+
     - 给定一个f(先序数组,0,LENGTH-1,中序数组,0,LENGTH-1)，返回树的头结点
+
     - 确定左树，图中左树用一个函数确定f(先序数组,1,3,中序数组,0,2)
+
     - 确定右树，图中右树用一个函数确定f(先序数组,4,6,中序数组,4,6)
+
+    - ```java
+        public static BTree buildTree(int[] p, int[] q)
+        {
+            if(null == p || null ==q || q.length != p.length)
+            {
+                return null;
+            }
+            return buildSubTree(p, 0, p.length -1 , q, 0, q.length -1 );
+        }
+        
+        //p是先序遍历的数组
+        //q是中序遍历的数组
+        public static BTree buildSubTree(int[] p, int l1, int r1, int[] q, int l2, int r2)
+        {
+            if(l1 > r1)
+            {
+                return null;
+            }
+        
+            BTree root = new BTree(p[l1]);
+            if(l1 == r1)
+            {
+                return root;
+            }
+        
+            //在中序遍历的数组中找到根结点find的位置
+            int find = l1;
+            while(q[find] != p[l1])
+            {
+                find++;
+            }
+        
+            root.lChild = buildSubTree(p, l1+1, find - l2 + l1, q, l2, find-1);
+            root.rChild = buildSubTree(p, find - l2 + l1 + 1, r1, q, find + 1, r2);
+            return root;
+        }
+        
+        public static void main(String[] args)
+        {
+        
+            //先序数组
+            int[] p = {1,2,4,5,3,6,7};
+        	//+中序数组
+            int[] q = {4,2,5,1,6,3,7};
+            BTree tree = BTree.buildTree(p, q);
+            BTree.preLoop(tree);
+            BTree.middleLoop(tree);
+        
+        }
+        ```
+
+        
 
 ## Java中的Math.Random函数
 
