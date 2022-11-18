@@ -580,7 +580,7 @@ public class PlusTwoLinkedList
 
 - ![](./resource/img/linkedlist/merge_linkedlist.png)
 - 思路
-    
+  
     - 创建head结点记录返回结果，其指向第一个元素最小的链表
     
     - pre,cur1 & cur2用来遍历，cur1是head.next
@@ -1205,12 +1205,19 @@ public class PlusTwoLinkedList
 
 #### 通过先序和中序遍历的位置构造一棵树
 
+![](./resource/img/binaryTree/construct_tree.png)
+
+![](./resource/img/binaryTree/find_head.png)
+
 - 采用递归思想
+    - 给定一个f(先序数组,0,LENGTH-1,中序数组,0,LENGTH-1)，返回树的头结点
+    - 确定左树，图中左树用一个函数确定f(先序数组,1,3,中序数组,0,2)
+    - 确定右树，图中右树用一个函数确定f(先序数组,4,6,中序数组,4,6)
 
 ## Java中的Math.Random函数
 
 - 返回一个[0,1)的随机数，但是随机数落在某个区间确实固定的
-- 比如落在[0,01]概率是0.1,落在[0,02]概率是0.2以此类推
+- 比如落在[0,01]概率是0.1,落在[0,0.2]概率是0.2以此类推
 - 因此随机数落在[0,x)概率就是x
 
 ## 基础题目
