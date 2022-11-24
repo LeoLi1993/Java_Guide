@@ -1275,6 +1275,380 @@ public class PlusTwoLinkedList
         }
         ```
 
+#### 按层次遍历收集结点
+
+![](./resource/img/binaryTree/level_loop.png)
+
+- 题目：给定二叉树root结点，返回自底向上层次遍历结果，从左往右的结果
+
+- 思路
+
+    - leetcode:https://leetcode.cn/problems/binary-tree-level-order-traversal-ii/
+
+    -  队列来做，根结点先入队
+
+    - 只要队列不空，队列元素出队，之后把根结点左孩子和有孩子入队
+
+    - ```java
+        package basic.class7;
+        
+        import basic.class6.BinaryTree;
+        import org.apache.poi.ss.formula.functions.T;
+        
+        import java.util.ArrayList;
+        import java.util.LinkedList;
+        import java.util.List;
+        import java.util.Queue;
+        
+        public class BinaryTreeMore
+        {
+            public static class TreeNode
+            {
+                private int value;
+                private TreeNode lChild;
+                private TreeNode rChild;
+        
+                public TreeNode(int value)
+                {
+                    this.value = value;
+                }
+        
+                public static List<List<Integer>> levelOrderBottom(TreeNode root)
+                {
+                    List<List<Integer>> response = new ArrayList<>();
+                    if(null == root)
+                    {
+                        return response;
+                    }
+                    //根结点入队
+                    Queue<TreeNode> queue = new LinkedList<>();
+                    queue.add(root);
+        
+                    //只要队列不空，就让元素出队
+                    while(!queue.isEmpty())
+                    {
+                        List<Integer> result = new ArrayList<>();
+                        int size = queue.size();
+                        for(int i=0; i<size; i++)
+                        {
+                            TreeNode element = queue.poll();
+                            result.add(element.value);
+                            if(null != element.lChild)
+                            {
+                                queue.add(element.lChild);
+                            }
+                            if(null != element.rChild)
+                            {
+                                queue.add(element.rChild);
+                            }
+                        }
+                        response.add(0, result);
+                    }
+                    return response;
+                }
+            }
+        
+            public static void main(String[] args)
+            {
+                TreeNode root = new TreeNode(3);
+                root.lChild = new TreeNode(9);
+                root.rChild = new TreeNode(20);
+                root.rChild.lChild = new TreeNode(15);
+                root.rChild.rChild = new TreeNode(7);
+        
+                List<List<Integer>> response = TreeNode.levelOrderBottom(root);
+            }
+        
+        }
+        
+        ```
+
+        
+
+#### 判断是否是平衡搜索二叉树
+
+- 平衡树：每一颗子树的左右高度差不超过1，
+
+    - 结构是Info(boolean isBalanced, int height)
+
+- 搜索树：每一颗树的左树比它小，右树比它大 
+
+    - 递归，左树是搜索二叉树且最大值< x, 右树是搜索二叉树且最小值> x.
+
+        - 结构是Info(boolean isSearchedTree, int min, int max)
+
+    - leetcode 98题: https://leetcode.cn/problems/validate-binary-search-tree/submissions/
+    
+       
+      
+      ```java
+      
+      package basic.class7;
+      class BalanceSearchBinaryTree
+      {
+          public static class TreeNode
+          {
+              private int val;
+              private TreeNode left;
+              private TreeNode right;
+              public TreeNode(int value)
+              {
+                  this.val = value;
+              }
+          }
+      
+          public static class Info
+          {
+              private boolean isBalanced;
+      
+              private boolean isSearched;
+      
+              private int max;
+      
+              private int min;
+              private int height;
+      
+      
+              public Info(boolean isBalanced, int height)
+              {
+                  this.isBalanced = isBalanced;
+                  this.height = height;
+              }
+      
+              public Info(boolean isSearched, int max, int min)
+              {
+                  this.isSearched = isSearched;
+                  this.max = max;
+                  this.min = min;
+              }
+      
+      
+          }
+      
+          public static boolean isBalanced(TreeNode root)
+          {
+              return process(root).isBalanced;
+          }
+          public static Info process(TreeNode root)
+          {
+              boolean isBalanced = true;
+              if(null == root)
+              {
+                  return new Info(true, 0);
+              }
+      
+              Info left = process(root.left);
+              Info right = process(root.right);
+              int height  = Math.max(left.height, right.height) + 1;
+              if(!left.isBalanced || !right.isBalanced || Math.abs(left.height - right.height) >= 2)
+              {
+                  isBalanced = false;
+              }
+              return new Info(isBalanced, height);
+          }
+      
+          //左边结点最大值小于root.val,右边最小值大于root.val
+          public static Info isSearchedTree(TreeNode root)
+          {
+              boolean isSearchedTree = true;
+              if(null == root)
+              {
+                  return null;
+              }
+      
+              Info left = isSearchedTree(root.left);
+              Info right = isSearchedTree(root.right);
+      
+              int max = root.val;
+              int min = root.val;
+      
+              if(null != left)
+              {
+                  max = Math.max(max, left.max);
+                  min = Math.min(min, left.min);
+              }
+              if(null != right)
+              {
+                  min = Math.min(min, right.min);
+                  max = Math.max(max, right.max);
+              }
+      
+              if(null != left && !left.isSearched)
+              {
+                  isSearchedTree = false;
+              }
+              if(null != right && !right.isSearched)
+              {
+                  isSearchedTree = false;
+              }
+      
+              if(left != null && left.max >= root.val )
+              {
+                  isSearchedTree = false;
+              }
+              if(null != right && right.min <= root.val)
+              {
+                  isSearchedTree = false;
+              }
+      
+              return new Info(isSearchedTree, max, min);
+          }
+      
+          public static void main(String[] args)
+          {
+              TreeNode root = new TreeNode(2);
+              root.left = new TreeNode(1);
+              root.right = new TreeNode(3);
+              System.out.println(BalanceSearchBinaryTree.isSearchedTree(root).isSearched && BalanceSearchBinaryTree.isBalanced(root));
+          }
+      }
+      
+      ```
+      
+      ```
+      true
+      ```
+      
+      
+
+#### 路径累加和
+
+- leetcode: https://leetcode.cn/problems/path-sum/
+
+- 能否找到二叉树中任意路径和等于指定值
+    - 思路：递归找到叶子结点，计算出累加和，判断累加和时候是否等于指定值，相等就返回true，找到了，反之。
+    
+    - 注意：函数递归的基准是叶子结点，因此不能够传空节点进来，不然会报空指针
+    
+    - ```java
+        public static boolean hasPathSum(TreeNode root, int targetSum)
+            {
+                List<Boolean> pathFound = new ArrayList<>(1);
+                if (null == root)
+                {
+                    return false;
+                }
+                processHasPathSum(root, 0, targetSum, pathFound);
+                if(!pathFound.isEmpty())
+                {
+                    return pathFound.get(0).booleanValue();
+                }
+                return false;
+            }
+        
+            public static TreeNode processHasPathSum(TreeNode root, int preSum, int targetSum, List<Boolean> pathFound)
+            {
+                if(root == null)
+                {
+                    return null;
+                }
+        
+                //非叶子结点累加和
+                preSum += root.val;
+                TreeNode left = processHasPathSum(root.left, preSum, targetSum, pathFound);
+                TreeNode right = processHasPathSum(root.right, preSum, targetSum, pathFound);
+        
+                //只有到叶子结点才判断累加和是否等于target,否则累加
+                if(null == left && null == right)
+                {
+                    if(preSum == targetSum)
+                    {
+                        pathFound.add(true);
+                        return root;
+                    }
+                }
+                return root;
+            }
+            
+            public static void main(String[] args)
+            {
+                TreeNode root = new TreeNode(1);
+                root.left = new TreeNode(2);
+                root.right = new TreeNode(3);
+        
+                System.out.println(BalanceSearchBinaryTree.hasPathSum(root, 5));
+            }
+        ```
+    
+        
+
+#### 收集达标路径和
+
+- 收集所有达标的路劲
+
+- leetcode 113: https://leetcode.cn/problems/path-sum-ii
+
+- 思路
+
+    - 先找到达标的路径
+
+    - copy该路径的内容
+
+    - 递归返回的时候需要从结果集里面删除叶子结点和非叶子结点
+
+    - ```java
+        public static List<List<Integer>> processAllPathSum(TreeNode root, int target)
+            {
+                //存储所有路径命中
+                List<List<Integer>> response = new ArrayList<>();
+                if(null == root)
+                {
+                    return response;
+                }
+        
+                //记录哪些路径命中
+                List<Integer> result = new ArrayList<>();
+                subProcessAllPathSum(root,0, target, response, result);
+                return response;
+            }
+        
+            public static void subProcessAllPathSum(TreeNode root, int preSum, int target, List<List<Integer>> response, List<Integer> result)
+            {
+                if (null == root)
+                {
+                    return;
+                }
+                result.add(root.val);
+                preSum += root.val;
+                subProcessAllPathSum(root.left, preSum, target, response, result);
+                subProcessAllPathSum(root.right, preSum, target, response, result);
+                if (null == root.left && null == root.right)
+                {
+                    if (target == preSum)
+                    {
+                        response.add(copyList(result));
+                    }
+                }
+                //叶子和非叶子结点往回走的时候要把自己从结果集里面删除掉
+                result.remove(result.toArray().length - 1);
+            }
+            public static List<Integer> copyList(List<Integer> source)
+            {
+                List<Integer> target = new ArrayList<>();
+                for (Integer data : source)
+                {
+                    target.add(data);
+                }
+                return target;
+            }
+            
+            public static void main(String[] args)
+            {
+                TreeNode root = new TreeNode(5);
+                root.left = new TreeNode(3);
+                root.right = new TreeNode(6);
+                root.left.left = new TreeNode(2);
+                root.left.left.left = new TreeNode(1);
+                root.left.right = new TreeNode(4);
+        
+                System.out.println(BalanceSearchBinaryTree.processAllPathSum(root, 11));
+            }
+        ```
+
+        ```
+        [[5, 3, 2, 1], [5, 6]]
+        ```
+
         
 
 ## Java中的Math.Random函数
