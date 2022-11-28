@@ -91,7 +91,330 @@
 - 有序表
 - 红黑树
 
-### 链表
+### Java中的Math.Random函数
+
+- 返回一个[0,1)的随机数，但是随机数落在某个区间确实固定的
+- 比如落在[0,01]概率是0.1,落在[0,0.2]概率是0.2以此类推
+- 因此随机数落在[0,x)概率就是x
+
+## 排序
+
+### 选择排序
+
+- 给定一个无序数组，请进行有序排列
+
+    - 思路
+
+        - 确定边界：数组为空或者长度小于2不需要排列
+
+        - 算法：一组数里面以第一个为基准，依次从后面取数和第一个数相比，如果比第一个数小，那么交换值，否则一直往下走，第一趟走完找出一个最小数放在第一位，以此类推
+
+            - 走完第1圈，外层0-n-1
+            - 走完第2圈，外层1-n-1
+            - 走完第3圈，外层2-n-1
+            - 内层跟外层一样的逻辑
+
+        - 时间复杂度O(n^2)
+
+        - ```java
+            package algorithm.basic;
+            
+            import java.util.Arrays;
+            
+            public class ChooseSort
+            {
+                public static void main(String[] args)
+                {
+                    int[] array = {5,7,1,2,10,9};
+                    System.out.print(Arrays.toString(array));
+                    chooseSort(array);
+                    System.out.println();
+                    System.out.print(Arrays.toString(array));
+                }
+            
+                public static void chooseSort(int[] array)
+                {
+                    //确立边界
+                    int length = array.length;
+                    if(null == array || length < 2)
+                    {
+                        return;
+                    }
+            
+                    for(int i=0;i<length;i++)
+                    {
+                        for(int j=i+1;j<length;j++)
+                        {
+                            if(array[i] > array[j])
+                            {
+                                //交换彼此的值
+                                int temp = 0;
+                                temp = array[i]; //被赋值的先赋值
+                                array[i] = array[j];
+                                array[j] = temp;
+                            }
+                        }
+                    }
+            
+                }
+            }
+            ```
+
+            
+
+### 冒泡排序
+
+- 给定一个无序数组，请进行有序排列
+
+    - 思路：两数相比较依次，大的放后面，依次类推，走完第一趟，最大的数在尾部，依次类推。
+
+        - 边界限定
+        - 算法
+            - 走完第1圈，外层0-n-1
+            - 走完第2圈，外层0-n-2
+            - 走完第3圈，外层0-n-3
+            - 外层相减，内层相加，依次比较
+
+    - 时间复杂度O(n^2)
+
+    - ```java
+        package algorithm.basic;
+        
+        import java.util.Arrays;
+        
+        public class BubbleSort
+        {
+            public static void main(String[] args)
+            {
+                int[]  array= {10,34,2,6,9,1,6,7,7,7};
+                bubbleSort(array);
+                System.out.println(Arrays.toString(array));
+            }
+        
+            public static void bubbleSort(int[] array)
+            {
+                final int LENGTH = array.length;
+                if( null == array || LENGTH<2)
+                {
+                    return ;
+                }
+        
+                for(int i=LENGTH-1;i>=0;i--)
+                {
+                    for(int j=0;j<i;j++)
+                    {
+                        if(array[j]>array[j+1])
+                        {
+                            int temp = 0;
+                            temp = array[j+1];
+                            array[j+1] = array[j];
+                            array[j]=temp;
+                        }
+                    }
+                }
+        
+            }
+        }
+        
+        ```
+
+        ```
+        [10, 34, 2, 6, 9, 1, 6, 7, 7, 7]
+        [1, 2, 6, 6, 7, 7, 7, 9, 10, 34]
+        ```
+
+### 插入排序
+
+- 给定一个无序数组，请进行有序排列
+
+- 思路：从数组里面从左往右依次挑选一个数，插入到原数组，比左边小的则交换，比左边大的不交换
+
+    - 边界限定
+
+    - 数要一个一个取，外圈层0-n-1
+
+    - 当前数的位置是end，前一个数的位置是pre，互相比较，满足条件则交换，否则挑选下一个数目
+
+```java
+    package algorithm.basic;
+    
+    import java.util.Arrays;
+    
+    public class InsertSort
+    {
+        public static void main(String[] args)
+        {
+            int[] array = {10,34,2,6,9,1,6,7,7,7};
+            System.out.println(Arrays.toString(array));
+            insertSort(null);
+            System.out.println(Arrays.toString(array));
+        }
+    
+        public static void insertSort(int[] array)
+        {
+            if(null == array || array.length < 2)
+            {
+                return;
+            }
+    
+            final int LENGTH = array.length;
+    
+             for (int i = 0; i < LENGTH; i++)
+            {
+                int j = i;
+                while (j >= 0 && j < LENGTH - 1 && array[j] > array[j + 1])
+                {
+                    int temp = 0;
+                    temp = array[j];
+                    array[j] = array[j + 1];
+                    array[j + 1] = temp;
+                    j--;
+                }
+            }
+        }
+    }
+```
+
+    [10, 34, 2, 6, 9, 1, 6, 7, 7, 7]
+    [1, 2, 6, 6, 7, 7, 7, 9, 10, 34]
+
+### 归并排序
+
+- 将数组/2进行拆分，递归，拆分到只剩下单个元素为止，最后两个数组进行merge
+
+- ![](./resource/img/sort/merge_sort.png)
+
+- ```java
+    package basic.class8;
+    
+    import util.Util;
+    
+    public class Sort
+    {
+    
+        public static void main(String[] args)
+        {
+            //int[] array = Util.generateRandomArray(10, 50);
+            int[] array = {1,6,3,6};
+            Util.loopArray(array);
+            mergeSort(array, 0, array.length - 1);
+            Util.loopArray(array);
+        }
+    
+        public static void mergeSort(int array[], int left, int right)
+        {
+            if (left == right)
+            {
+                return;
+            }
+            int middle = (left + right) / 2;
+            mergeSort(array, left, middle);
+            mergeSort(array, middle + 1, right);
+            merge(array, left, middle, right);
+        }
+    
+        //两个数组merge，左边数组是left开始，右边数组是middle + 1开始
+        public static void merge(int array[], int left, int middle, int right)
+        {
+            int[] help = new int[right - left + 1];
+    
+            int i = 0;
+            int p1 = left;
+            int p2 = middle + 1;
+            while (p1 <= middle && p2 <= right)
+            {
+                if (array[p1] <= array[p2])
+                {
+                    help[i++] = array[p1++];
+                }
+                else
+                {
+                    help[i++] = array[p2++];
+                }
+            }
+    
+            while (p1 <= middle)
+            {
+                help[i++] = array[p1++];
+            }
+    
+            while (p2 <= right)
+            {
+                help[i++] = array[p2++];
+            }
+    
+            for(int j = 0; j< help.length; j++)
+            {
+                array[left++] = help[j];
+            }
+        }
+    }
+    
+    ```
+
+    
+
+## 搜索
+
+### 二分查找
+
+- 针对有序数组，查找value在数组中的位置，找到返回该数的位置，否则返回-1
+
+    - 思路
+
+        - 一直递归二分查找
+
+        - int mid = (left + right)/2
+
+        - ```java
+            public class Search
+            {
+                public static void main(String[] args)
+                {
+                    int[] array = Util.generateRandomArray(20,50);
+                    Util.quickSort(array);
+                    Util.loopArray(array);
+                    System.out.println(binarySearch(array, 10));
+                }
+            
+                public static int binarySearch(int[] array, int value)
+                {
+            
+                    if (null == array)
+                    {
+                        return -1;
+                    }
+            
+                    final int LENGTH = array.length;
+                    int left = 0;
+                    int right = LENGTH - 1;
+                    while (left <= right)
+                    {
+                        int middle = (left + right) / 2;
+                        if (value == array[middle])
+                        {
+                            return middle;
+                        }
+                        else if (value > array[middle])
+                        {
+                            left = middle + 1;
+                        }
+                        else
+                        {
+                            right = middle - 1;
+                        }
+                    }
+                    return -1;
+                }
+            }
+            ```
+
+            ```
+            1 2 3 11 14 17 20 23 25 27 29 31 37 38 38 40 42 43 
+            -1
+            ```
+
+## 链表
 
 - 内存地址不连续，因此查询不方便，需要一个一个结点遍历，适合删除和添加元素
 
@@ -939,7 +1262,7 @@ public class PlusTwoLinkedList
         尾出队 5 4 3 0 1 2 
         ```
 
-### 二叉树
+## 二叉树
 
 - 先序遍历：根-》左-》右
 
@@ -1028,7 +1351,7 @@ public class PlusTwoLinkedList
         4 5 2 6 7 3 1
         ```
 
-#### 判断两棵树是否相同
+### 判断两棵树是否相同
 
 - 思路
 
@@ -1094,7 +1417,7 @@ public class PlusTwoLinkedList
         true
         ```
 
-#### 判断两棵树是否是镜面树
+### 判断两棵树是否是镜面树
 
 ![](./resource/img/binaryTree/mirror_tree.png)
 
@@ -1157,7 +1480,7 @@ public class PlusTwoLinkedList
         true
         ```
 
-#### 树的最大深度或者高度
+### 树的最大深度或者高度
 
 - 采用递归，树的最大深度=max(maxDepth(左树) , maxDepth(右树)) + 1
 
@@ -1210,7 +1533,7 @@ public class PlusTwoLinkedList
     4
     ```
 
-#### 通过先序和中序遍历的位置构造一棵树
+### 通过先序和中序遍历的位置构造一棵树
 
 ![](./resource/img/binaryTree/construct_tree.png)
 
@@ -1275,7 +1598,7 @@ public class PlusTwoLinkedList
         }
         ```
 
-#### 按层次遍历收集结点
+### 按层次遍历收集结点
 
 ![](./resource/img/binaryTree/level_loop.png)
 
@@ -1365,7 +1688,7 @@ public class PlusTwoLinkedList
 
         
 
-#### 判断是否是平衡搜索二叉树
+### 判断是否是平衡搜索二叉树
 
 - 平衡树：每一颗子树的左右高度差不超过1，
 
@@ -1511,7 +1834,7 @@ public class PlusTwoLinkedList
       
       
 
-#### 路径累加和
+### 路径累加和
 
 - leetcode: https://leetcode.cn/problems/path-sum/
 
@@ -1572,7 +1895,7 @@ public class PlusTwoLinkedList
     
         
 
-#### 收集达标路径和
+### 收集达标路径和
 
 - 收集所有达标的路劲
 
@@ -1651,11 +1974,7 @@ public class PlusTwoLinkedList
 
         
 
-## Java中的Math.Random函数
-
-- 返回一个[0,1)的随机数，但是随机数落在某个区间确实固定的
-- 比如落在[0,01]概率是0.1,落在[0,0.2]概率是0.2以此类推
-- 因此随机数落在[0,x)概率就是x
+- 
 
 ## 基础题目
 
@@ -1726,185 +2045,6 @@ public class PlusTwoLinkedList
   
     
 
-### 选择排序
-
-- 给定一个无序数组，请进行有序排列
-
-  - 思路
-
-    - 确定边界：数组为空或者长度小于2不需要排列
-
-    - 算法：一组数里面以第一个为基准，依次从后面取数和第一个数相比，如果比第一个数小，那么交换值，否则一直往下走，第一趟走完找出一个最小数放在第一位，以此类推
-
-      - 走完第1圈，外层0-n-1
-      - 走完第2圈，外层1-n-1
-      - 走完第3圈，外层2-n-1
-      - 内层跟外层一样的逻辑
-
-    - 时间复杂度O(n^2)
-
-    - ```java
-      package algorithm.basic;
-      
-      import java.util.Arrays;
-      
-      public class ChooseSort
-      {
-          public static void main(String[] args)
-          {
-              int[] array = {5,7,1,2,10,9};
-              System.out.print(Arrays.toString(array));
-              chooseSort(array);
-              System.out.println();
-              System.out.print(Arrays.toString(array));
-          }
-      
-          public static void chooseSort(int[] array)
-          {
-              //确立边界
-              int length = array.length;
-              if(null == array || length < 2)
-              {
-                  return;
-              }
-      
-              for(int i=0;i<length;i++)
-              {
-                  for(int j=i+1;j<length;j++)
-                  {
-                      if(array[i] > array[j])
-                      {
-                          //交换彼此的值
-                          int temp = 0;
-                          temp = array[i]; //被赋值的先赋值
-                          array[i] = array[j];
-                          array[j] = temp;
-                      }
-                  }
-              }
-      
-          }
-      }
-      ```
-
-      
-
-### 冒泡排序
-
-- 给定一个无序数组，请进行有序排列
-
-  - 思路：两数相比较依次，大的放后面，依次类推，走完第一趟，最大的数在尾部，依次类推。
-
-    - 边界限定
-    - 算法
-      - 走完第1圈，外层0-n-1
-      - 走完第2圈，外层0-n-2
-      - 走完第3圈，外层0-n-3
-      - 外层相减，内层相加，依次比较
-
-  - 时间复杂度O(n^2)
-
-  - ```java
-    package algorithm.basic;
-    
-    import java.util.Arrays;
-    
-    public class BubbleSort
-    {
-        public static void main(String[] args)
-        {
-            int[]  array= {10,34,2,6,9,1,6,7,7,7};
-            bubbleSort(array);
-            System.out.println(Arrays.toString(array));
-        }
-    
-        public static void bubbleSort(int[] array)
-        {
-            final int LENGTH = array.length;
-            if( null == array || LENGTH<2)
-            {
-                return ;
-            }
-    
-            for(int i=LENGTH-1;i>=0;i--)
-            {
-                for(int j=0;j<i;j++)
-                {
-                    if(array[j]>array[j+1])
-                    {
-                        int temp = 0;
-                        temp = array[j+1];
-                        array[j+1] = array[j];
-                        array[j]=temp;
-                    }
-                }
-            }
-    
-        }
-    }
-    
-    ```
-    
-    ```
-    [10, 34, 2, 6, 9, 1, 6, 7, 7, 7]
-    [1, 2, 6, 6, 7, 7, 7, 9, 10, 34]
-    ```
-
-### 插入排序
-
-- 给定一个无序数组，请进行有序排列
-
-- 思路：从数组里面从左往右依次挑选一个数，插入到原数组，比左边小的则交换，比左边大的不交换
-
-  - 边界限定
-
-  - 数要一个一个取，外圈层0-n-1
-
-  - 当前数的位置是end，前一个数的位置是pre，互相比较，满足条件则交换，否则挑选下一个数目
-
-```java
-
-    package algorithm.basic;
-    
-    import java.util.Arrays;
-    
-    public class InsertSort
-    {
-        public static void main(String[] args)
-        {
-            int[] array = {10,34,2,6,9,1,6,7,7,7};
-            System.out.println(Arrays.toString(array));
-            insertSort(null);
-            System.out.println(Arrays.toString(array));
-        }
-    
-        public static void insertSort(int[] array)
-        {
-            if(null == array || array.length < 2)
-            {
-                return;
-            }
-    
-            final int LENGTH = array.length;
-    
-             for (int i = 0; i < LENGTH; i++)
-            {
-                int j = i;
-                while (j >= 0 && j < LENGTH - 1 && array[j] > array[j + 1])
-                {
-                    int temp = 0;
-                    temp = array[j];
-                    array[j] = array[j + 1];
-                    array[j + 1] = temp;
-                    j--;
-                }
-            }
-        }
-    }
-```
-
-    [10, 34, 2, 6, 9, 1, 6, 7, 7, 7]
-    [1, 2, 6, 6, 7, 7, 7, 9, 10, 34]
 ### 数组范围求和
 
 -  给定一个数组，计算出从L到R的和
@@ -2115,64 +2255,6 @@ public static int calculateRangeValue(int[] array, int left, int right) throws E
         6出现了+ 142961次
         7出现了+ 142883次
         ```
-
-### 二分查找
-
-- 针对有序数组，查找value在数组中的位置，找到返回该数的位置，否则返回-1
-
-    - 思路
-
-        - 一直递归二分查找
-
-        - int mid = (left + right)/2
-
-        - ```java
-            public class Search
-            {
-                public static void main(String[] args)
-                {
-                    int[] array = Util.generateRandomArray(20,50);
-                    Util.quickSort(array);
-                    Util.loopArray(array);
-                    System.out.println(binarySearch(array, 10));
-                }
-            
-                public static int binarySearch(int[] array, int value)
-                {
-            
-                    if (null == array)
-                    {
-                        return -1;
-                    }
-            
-                    final int LENGTH = array.length;
-                    int left = 0;
-                    int right = LENGTH - 1;
-                    while (left <= right)
-                    {
-                        int middle = (left + right) / 2;
-                        if (value == array[middle])
-                        {
-                            return middle;
-                        }
-                        else if (value > array[middle])
-                        {
-                            left = middle + 1;
-                        }
-                        else
-                        {
-                            right = middle - 1;
-                        }
-                    }
-                    return -1;
-                }
-            }
-            ```
-
-            ```
-            1 2 3 11 14 17 20 23 25 27 29 31 37 38 38 40 42 43 
-            -1
-            ```
 
 #### 有序数组中找到大于等于num的最左数
 
