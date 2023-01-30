@@ -1,4 +1,4 @@
-# Algorithm
+Algorithm
 
 - [基础知识](#基础知识)
     - [时间复杂度](#时间复杂度)
@@ -13,6 +13,9 @@
         - [快速排序](#快速排序)
     - [搜索](#搜索)
         - [二分查找](#二分查找)
+    - [数组](#数组)
+        - [数组实现栈](#数组实现栈)
+        - [数组实现队列](#数组实现队列)
     - [链表](#链表)
         - [单链表](#单链表)
             - [单链表反转](#单链表反转)
@@ -21,6 +24,7 @@
             - [K个结点组内逆序调整](#K个结点组内逆序调整)
             - [链表相加](#链表相加)
             - [有序链表合并](#有序链表合并)
+            - [删除指定值](#删除指定值)
     - [双链表](#双链表)
         - [双链表反转](#双链表反转)
         - [双链表实现双端队列](#双链表实现双端队列)
@@ -105,6 +109,16 @@
 - 返回一个[0,1)的随机数，但是随机数落在某个区间确实固定的
 - 比如落在[0,01]概率是0.1,落在[0,0.2]概率是0.2以此类推
 - 因此随机数落在[0,x)概率就是x
+
+### 递归
+
+- 任何递归都可以通过非递归的方式实现
+- Master公式估算时间复杂度
+    - T(N) = a * T(N/b) + O(N^d)
+        - a,b,d均为常数,子任务规模一样
+        - ![](./resource/img/array/recurrsive.png)
+        - 时间复杂度
+            - ![](./resource/img/array/recurrsive_2.png))
 
 ## 排序
 
@@ -239,10 +253,9 @@
 - 思路：从数组里面从左往右依次挑选一个数，插入到原数组，比左边小的则交换，比左边大的不交换
 
     - 边界限定
-
-    - 数要一个一个取，外圈层0-n-1
-
+- 数要一个一个取，外圈层0-n-1
     - 当前数的位置是end，前一个数的位置是pre，互相比较，满足条件则交换，否则挑选下一个数目
+- 时间复杂度O(n^2)
 
 ```java
     package algorithm.basic;
@@ -289,7 +302,11 @@
 
 ### 归并排序
 
+#### 递归版
+
 - 将数组/2进行拆分，递归，拆分到只剩下单个元素为止，最后两个数组进行merge
+
+    - 时间复杂度O(N*logn)
 
 - ![](./resource/img/sort/merge_sort.png)
 
@@ -361,7 +378,268 @@
     
     ```
 
+#### 非递归版
+
+- 用步长来做，step从1开始，相邻两个数作为一组比较大小，小的放左边，大的放右边
+- 依次step = step*2，两组元素比较，依次排序
+- 直到step超过数组长度立即停止循环
+
+#### 小和问题
+
+- 描述：在一个数组中，把比当前数小的所有的左边的数累加
+
+- 例子
+
+    - ```
+        [1,3,4,2,5]
+        1左边比1小的数：0
+        3左边比3小的数：1
+        4左边比4小的数：1,3
+        2左边比2小的数：1
+        5左边比5小的数：1,3,4,2
+        所以小和为0+1+1+3+1+1+3+4+2=16
+        ```
+
+    - 思路
+        - **本质就是求右边有多少个数比左边的数大**
+        - 利用递归版归并排序来做
+        - 左边p位置数比右边q位置数小,那么记录右边数组个数:r - q + 1
+        - 记录累加和result += (r-q+1)*array[p]
+
+#### 数组中的逆序对
+
+- ![](./resource/img/sort/k_reverse.png)
+- ![](./resource/img/sort/k_reverse_2.png)
+- 排好序的左组和右组
+- 从右往左，找右组里面比左组x小的有几个
+    - 右边元素大或者相等，直接把右边的放入到结果集数据中,右边元素往前移
     
+    - 右边元素小于左边元素，直接统计右边小于的元素个数，左边元素往前移
+    
+    - ```java
+        package systematic.class4;
+        
+        import util.Util;
+        
+        public class MergeSort
+        {
+            private int result = 0;
+        
+            public static void main(String[] args)
+            {
+                MergeSort mergeSort = new MergeSort();
+                //int[] array = Util.generateRandomArray(10, 50);
+                int[] array = { 1,3,2,3,1 };
+                Util.loopArray(array);
+                System.out.println(mergeSort.reversePairs(array));
+                Util.loopArray(array);
+            }
+        
+            //计算数组中有多少个逆序对
+            public int reversePairs(int[] nums)
+            {
+                if (null == nums || nums.length < 2)
+                {
+                    return 0;
+                }
+                reversePairsProcess(nums, 0, nums.length - 1);
+                return result;
+            }
+        
+            public void reversePairsProcess(int[] nums, int left, int right)
+            {
+                if (left == right)
+                {
+                    return;
+                }
+        
+                int middle = (left + right) / 2;
+                reversePairsProcess(nums, left, middle);
+                reversePairsProcess(nums, middle + 1, right);
+                reversePairsMerge(nums, left, middle, right);
+            }
+        
+            public void reversePairsMerge(int[] array, int left, int middle, int right)
+            {
+                int[] help = new int[right - left + 1];
+                int length = help.length - 1;
+                int p = middle;
+                int q = right;
+        
+                while (p >= left && q > middle)
+                {
+                    if (array[p] < array[q])
+                    {
+                        help[length--] = array[q--];
+                    }
+                    else if (array[p] > array[q])
+                    {
+                        result += q - middle;
+                        help[length--] = array[p--];
+                    }
+                    else
+                    {
+                        help[length--] = array[q--];
+                    }
+                }
+        
+                while (p >= left)
+                {
+                    help[length--] = array[p--];
+                }
+        
+                while (q > middle)
+                {
+                    help[length--] = array[q--];
+                }
+        
+                for (int j = help.length - 1; j >= 0; j--)
+                {
+                    array[right--] = help[j];
+                }
+            }
+        }
+        
+        ```
+    
+        ```
+        1 3 2 3 1 
+        4
+        1 1 2 3 3 
+        ```
+
+#### 合并两个有序数组
+
+- ```
+    给你两个按 非递减顺序 排列的整数数组 nums1 和 nums2，另有两个整数 m 和 n ，分别表示 nums1 和 nums2 中的元素数目。
+    请你 合并 nums2 到 nums1 中，使合并后的数组同样按 非递减顺序 排列。
+    注意：最终，合并后数组不应由函数返回，而是存储在数组 nums1 中。为了应对这种情况，nums1 的初始长度为 m + n，其中前 m 个元素表示应合并的元素，后 n 个元素为 0 ，应忽略。nums2 的长度为 n 。
+    
+    ```
+
+- ```
+    输入：nums1 = [1,2,3,0,0,0], m = 3, nums2 = [2,5,6], n = 3
+    输出：[1,2,2,3,5,6]
+    解释：需要合并 [1,2,3] 和 [2,5,6] 。
+    合并结果是 [1,2,2,3,5,6] ，其中斜体加粗标注的为 nums1 中的元素。
+    ```
+
+    - 思路
+
+        - 通过归并排序解决即可
+
+        - ```java
+            public void merge(int[] nums1, int m, int[] nums2, int n)
+            {
+                int[] help = new int[m + n];
+                int i = 0;
+                int p = 0;
+                int q = 0;
+            
+                while (p < m && q < n)
+                {
+                    if (nums1[p] < nums2[q])
+                    {
+                        help[i++] = nums1[p++];
+                    }
+                    else
+                    {
+                        help[i++] = nums2[q++];
+                    }
+                }
+            
+                while (p < m)
+                {
+                    help[i++] = nums1[p++];
+                }
+            
+                while (q < n)
+                {
+                    help[i++] = nums2[q++];
+                }
+            
+                for (int j = 0; j < help.length; j++)
+                {
+                    nums1[j] = help[j];
+                }
+            }
+            ```
+
+            
+
+### 快速排序
+
+- 思路：数组最后一个元素作为比较数，小于区域从-1开始，大于区域从array.length - 1位置开始（大于区域要罩住最后一个元素），当前位置index从0开始
+    - **小于区域初始位置(lessRegion)，大于区域初始位置(moreRegion)，当前元素位置，比较数（数组最后一个元素）**
+    - 如果当前位置的元素**小于比较数**，当前数和小于区域下一个数交换，小于区域往右扩一个位置，当前位置加一
+    - 如果当前位置的元素**大于比较数**，当前数和大于区域前一个位置的元素交换，大于区域往左扩一个位置，当前位置不动
+    - 如果当前位置的元素和比较数**相等**，**当前位置直接加一**
+    - 当前数和大于区域的边界相遇的时候，停止遍历
+    - 停止遍历之后需要大于区域第一个元素和比较数交换才算完成
+    - 走完这一趟仅仅让比较数相同部分有序（int[lessRegion, moreRegion]），还需要找到
+    - z递归
+        - 时间复杂度O(logn*N)
+- ![](./resource/img/sort/quick_sort.png)
+  
+- ```java
+    public static void quickSort(int[] array)
+        {
+            if(null == array || array.length < 2)
+            {
+                return ;
+            }
+            process(array, 0, array.length - 1);
+        }
+    
+        public static void process(int[] array, int left, int right)
+        {
+            if(left >= right)
+            {
+                return;
+            }
+            int[] data = partition(array, left, right);
+            process(array, left, data[0] - 1);
+            process(array, data[1] + 1, right);
+        }
+    
+    public static int[] partition(int[] array, int left, int right)
+        {
+            int lessRegion = left - 1;
+            int moreRegion = right;
+            int index = left;
+            int p = array[right];
+    
+            while(index < moreRegion)
+            {
+                if(array[index] < p)
+                {
+                    swap(array, index, lessRegion + 1);
+                    lessRegion++;
+                    index++;
+                }
+                else if(array[index] > p)
+                {
+                    swap(array, index, moreRegion - 1);
+                    moreRegion--;
+                }
+                else
+                {
+                    index++;
+                }
+            }
+            swap(array, moreRegion, right);
+            return new int[]{lessRegion + 1, moreRegion};
+        }
+    ```
+
+    ```
+    16 7 34 32 28 6 43 4 
+    4 6 7 16 28 32 34 43 
+    ```
+    
+    
+
+
 
 ## 搜索
 
@@ -422,6 +700,366 @@
             1 2 3 11 14 17 20 23 25 27 29 31 37 38 38 40 42 43 
             -1
             ```
+
+## 数组
+
+### 数组实现栈
+
+- 思路
+
+    - 通过数组index来实现
+
+    - ```java
+        public class DataStructure
+        {
+            private List<Integer> stack = new ArrayList<>();
+            
+            public void pop()
+            {
+            int index = stack.size() - 1;
+            System.out.print(stack.get(index) + " ");
+            stack.remove(index);
+            }
+        
+            public void peek()
+            {
+                int index = stack.size() - 1;
+                System.out.print(stack.get(index) + " ");
+            }
+        
+            public void poll(int value)
+            {
+                int index = stack.size();
+                stack.add(index, value);
+            }
+            
+            public static void main(String[] args)
+            {
+        		DataStructure dataStructure = new DataStructure();
+                for(int i=0;i<10;i++)
+                {
+                    dataStructure.poll(i);
+                }
+        
+                for(int j=dataStructure.stack.size();j>0;j--)
+                {
+                    dataStructure.pop();
+                }
+        
+            }
+        
+        }
+        ```
+
+        
+
+### 数组实现队列
+
+- 给定大小的数组，需要起始位置（start），结束位置(end)，队列的大小(size)
+
+    - 起始位置是队头，用来出队的
+
+    - 结束位置是队尾，队尾后面添加新的元素
+
+    - 当起始位置和结束位置相同的时候需要判断队列大小
+
+        - 如果队列满了，那么不能添加新的元素
+        - 队列为空
+
+    - ```java
+        
+        
+        public class DataStructure
+        {
+        	//队列固定大小是5
+            private int[] array = new int[5];
+            //队列的头
+            private int start = -1;
+            //队列的尾
+            private int end = -1;
+            //队列的容量
+            private int size = 0;
+            
+            public void queuePop()
+            {
+                if(size ==  0)
+                {
+                    System.out.println("queue is empty...");
+                    return;
+                }
+                else
+                {
+                    System.out.print(array[start] + " ");
+                    array[start] = 0;
+                    if(start == array.length - 1)
+                    {
+                        start = 0;
+                    }
+                    else
+                    {
+                        start++;
+                    }
+                    size--;
+                    if(size == 0)
+                    {
+                        //队列为空设置初始状态
+                        start = -1;
+                        end = -1;
+                    }
+                }
+        
+            }
+        
+            public void queuePoll(int value)
+            {
+                if(start == -1 && end == -1 && size == 0)
+                {
+                    array[++start] = value;
+                    array[++end] = value;
+                    size++;
+                }
+                else
+                {
+                    if( size == array.length)
+                    {
+                        System.out.println("queue is full");
+                        return;
+                    }
+                    else
+                    {
+                        if(end == array.length - 1)
+                        {
+                            end = 0;
+                            array[end] = value;
+                        }
+                        else
+                        {
+                            array[++end] = value;
+                        }
+                        size++;
+                    }
+                }
+            }
+        
+            public void queuePeek()
+            {
+                if(size == 0)
+                {
+                    System.out.println("Queue is empty...");
+                    return;
+                }
+                else
+                {
+                    System.out.print(array[start] + " ");
+                }
+            }
+        }
+        
+        public static void main(String[] args)
+            {
+                DataStructure dataStructure = new DataStructure();
+                for(int i=0;i<5;i++)
+                {
+                    dataStructure.queuePoll(i);
+                }
+                System.out.println();
+                for(int i=dataStructure.size;i>0;i--)
+                {
+                    dataStructure.queuePop();
+                }
+                dataStructure.queuePeek();
+            }
+        ```
+
+        ```
+        0 1 2 3 4 Queue is empty...
+        ```
+
+## 栈
+
+### 如何用栈结构实现队列
+
+- 思路
+
+    - 采用两个栈，push & pop栈，push栈添加数据，pop栈弹出数据
+
+        - push栈数据推往pop栈
+
+            - **pop空**的时候才可以让**push栈一次性全部推完**数据
+
+            - ```java
+                package systematic.class3;
+                
+                import java.util.Stack;
+                
+                public class MyQueue
+                {
+                    private Stack<Integer> pushStack;
+                    private Stack<Integer> popStack;
+                
+                    //["MyQueue", "push", "push", "peek", "pop", "empty"]
+                    //[[],[1],[2],[],[],[]]
+                    //["MyQueue","push","push","pop","peek"]
+                    //[[],[1],[2],[],[]]
+                    public static void main(String[] args)
+                    {
+                        MyQueue myQueue = new MyQueue();
+                        myQueue.push(1);
+                        myQueue.push(2);
+                        System.out.println(myQueue.pop());
+                        System.out.println(myQueue.peek());
+                    }
+                
+                    public MyQueue()
+                    {
+                        pushStack = new Stack<>();
+                        popStack = new Stack<>();
+                    }
+                
+                    public void pushToPop()
+                    {
+                        //只有popStack为空的时候才可以往里面添加元素
+                        if(popStack.isEmpty())
+                        {
+                            //把pushStack里面元素一次性全部push到popStack
+                            while(!pushStack.empty())
+                            {
+                                popStack.push(pushStack.pop());
+                            }
+                        }
+                    }
+                
+                    public void push(Integer x)
+                    {
+                        pushStack.push(x);
+                        pushToPop();
+                    }
+                
+                    public int pop()
+                    {
+                        if(popStack.isEmpty() && pushStack.isEmpty())
+                        {
+                            System.out.println("Queue is empty.");
+                            return -1;
+                        }
+                        pushToPop();
+                        return popStack.pop();
+                    }
+                
+                    public int peek()
+                    {
+                        if(popStack.isEmpty() && pushStack.isEmpty())
+                        {
+                            System.out.println("Queue is empty");
+                            return -1;
+                        }
+                        pushToPop();
+                        return popStack.peek();
+                    }
+                
+                    public boolean empty()
+                    {
+                        return popStack.empty() && pushStack.isEmpty();
+                    }
+                }
+                
+                ```
+
+                
+
+## 队列
+
+### 如何用队列结构实现栈
+
+- 思路
+
+    - 用两个队列，其中队列1往队列2挪动元素，队列1只保留一个元素出队
+
+    - 队列2往队列1挪动元素，只保留一个元素出队，依次循环，知道两边队列都为空
+
+    - 不空的队列加入元素，重复上述操作
+
+    - ```java
+        package systematic.class3;
+        
+        import java.util.LinkedList;
+        import java.util.Queue;
+        
+        public class MyStack
+        {
+        
+            //用来存储元素的
+            private Queue<Integer> queue;
+            //负责队列，用来暂存元素的
+            private Queue<Integer> help;
+        
+            public MyStack()
+            {
+                queue = new LinkedList<>();
+                help = new LinkedList<>();
+            }
+        
+            public void push(int x)
+            {
+                queue.add(x);
+            }
+        
+            public int pop()
+            {
+                if (queue.isEmpty())
+                {
+                    System.out.println("Stack is Empty");
+                    return -1;
+                }
+                else
+                {
+        
+                    while (queue.size() > 1)
+                    {
+                        help.offer(queue.poll());
+                    }
+                    int value = queue.poll();
+                    //queue和help互换
+                    Queue temp = null;
+                    temp = queue;
+                    queue = help;
+                    help = temp;
+                    return value;
+                }
+            }
+        
+            public int top()
+            {
+                if (queue.isEmpty())
+                {
+                    System.out.println("Stack is Empty");
+                    return -1;
+                }
+                else
+                {
+                    while (queue.size() > 1)
+                    {
+                        help.offer(queue.poll());
+                    }
+                    int value = queue.poll();
+                    help.offer(value);
+                    //queue和help互换
+                    Queue temp = null;
+                    temp = queue;
+                    queue = help;
+                    help = temp;
+                    return value;
+                }
+            }
+        
+            public boolean empty()
+            {
+                return queue.isEmpty();
+            }
+        }
+        ```
+
+        
 
 ## 链表
 
@@ -1020,8 +1658,144 @@ public class PlusTwoLinkedList
             2 2 4 5 
             1 2 2 2 4 4 5 
             ```
-    
-            
+
+##### 删除指定值
+
+- 思路
+
+    - 删除指定元素的值，那么要需要找前一个元素，当前元素和下一个元素
+
+    - 因此准备好pre,cur,next,newHead指针，pre,cur,next都是操作的，而newHead是用来返回删除的结果的
+
+    - 注意删除头结点的时候，newHead -> cur，其余情况newHead不用修改
+
+    - ```java
+        package systematic.class3;
+        
+        public class DataStructure
+        {
+            static class SingleNode
+            {
+                private SingleNode next;
+                private int val;
+        
+                public SingleNode(int val)
+                {
+                    this.val = val;
+                }
+        
+                public static SingleNode constructSingleNode(int length)
+                {
+                    /*SingleNode head = null;
+                    SingleNode tail = null;
+                    for(int i=0;i<length;i++)
+                    {
+                        if(null == head)
+                        {
+                            SingleNode node = new SingleNode((int)(Math.random()*10));
+                            head = node;
+                            tail = node;
+                        }
+                        else
+                        {
+                            tail.next = new SingleNode((int)(Math.random()*10));
+                            tail = tail.next;
+                        }
+                    }*/
+        
+                    SingleNode head = null;
+                    SingleNode tail = null;
+                    SingleNode node = new SingleNode(-3);
+                    head = node;
+                    tail = node;
+                    tail.next = new SingleNode(5);
+                    tail = tail.next;
+                    tail.next = new SingleNode(-99);
+                    tail = tail.next;
+                    return head;
+                }
+        
+                public static void loopSingleNode(SingleNode head)
+                {
+                    while(head != null)
+                    {
+                        System.out.print(head.val + " ");
+                        head = head.next;
+                    }
+                }
+            }
+        
+            public static void main(String[] args)
+            {
+                SingleNode head = SingleNode.constructSingleNode(10);
+                SingleNode.loopSingleNode(head);
+                System.out.println();
+        
+                SingleNode newHead = deleteSpecificValue(head, -3);
+                SingleNode.loopSingleNode(newHead);
+            }
+        
+            public static SingleNode deleteSpecificValue(SingleNode head, int val)
+            {
+                SingleNode newHead = head;
+                SingleNode cur = head;
+                SingleNode pre = null;
+                if(null == head)
+                {
+                    return null;
+                }
+        
+                while(cur != null)
+                {
+        
+                    SingleNode next = cur.next;
+                    if(cur.val == val)
+                    {
+                        if(null != pre)
+                        {
+                            pre.next = next;
+                            cur.next = null;
+                            cur = next;
+                        }
+                        else
+                        {
+                            cur.next = null;
+                            cur = next;
+                            newHead = cur;
+                        }
+        
+        
+                    }
+                    else
+                    {
+                        pre = cur;
+                        cur = cur.next;
+                    }
+                }
+                return newHead;
+            }
+        
+        
+        }
+        
+        ```
+
+        ```
+        [4,5,1,9]
+        5
+        
+        [4,1,9]
+        ```
+
+        ```
+        [-3 5 -99]
+        -3
+        
+        
+        [5 -99]
+        ```
+
+        
 
 #### 双链表
 
