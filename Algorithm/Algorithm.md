@@ -43,6 +43,13 @@ Algorithm
 - [题目](#题目)
     - [二分查找算法](#二分查找算法)
     - [原地算法对单链表进行重排序](#原地算法对单链表进行重排序)
+- [Top100](#Top100)
+    - [哈希](#哈希)
+        - [两数之和](#两数之和)
+        - [字母异位分组](#字母异位分组)
+        - [最长连续序列](#最长连续序列)
+    - [双指针](#双指针)
+        - [移动零](#移动零)
 
 ## 基础知识
 
@@ -3604,3 +3611,210 @@ public class RemoveDuplicateNumber
 - 解法二：去重递归
   
   - 解法三：双指针迭代
+
+## Top100
+
+### 哈希
+
+#### 两数之和
+
+- 题目
+
+  - 给定一个整数数组 `nums` 和一个整数目标值 `target`，请你在该数组中找出 **和为目标值** *`target`* 的那 **两个** 整数，并返回它们的数组下标。
+
+  - 你可以假设每种输入只会对应一个答案。但是，数组中同一个元素在答案里不能重复出现。
+
+  - 你可以按任意顺序返回答案。
+
+  - **示例 1：**
+
+    ```
+    输入：nums = [2,7,11,15], target = 9
+    输出：[0,1]
+    解释：因为 nums[0] + nums[1] == 9 ，返回 [0, 1] 。
+    ```
+
+#### 字母异位分组
+
+- 题目
+
+  - 给你一个字符串数组，请你将 **字母异位词** 组合在一起。可以按任意顺序返回结果列表
+
+  - **字母异位词** 是由重新排列源单词的所有字母得到的一个新单词
+
+  - **示例 1:**
+
+    ```
+    输入: strs = ["eat", "tea", "tan", "ate", "nat", "bat"]
+    输出: [["bat"],["nat","tan"],["ate","eat","tea"]]
+    ```
+
+```java
+/*
+    题目：异位词分组（相同词组为一组）
+    输入: strs = ["eat", "tea", "tan", "ate", "nat", "bat"]
+    输出: [["bat"],["nat","tan"],["ate","eat","tea"]]
+    思路1：
+    1. 遍历String字符串数组，对值进行排序，之后放入到Map<String, List<String>>中，相同的key就直接把值添加到List里面
+    时间复杂度：N * K * LogK
+    */
+    public List<List<String>> groupAnagrams(String[] strs)
+    {
+        Map<String, List<String>> map = new HashMap<>();
+        for (String str : strs)
+        {
+            //字符串排序
+            char[] array = str.toCharArray();
+            Arrays.sort(array);
+
+            //分组
+            String key = String.valueOf(array);
+            List<String> result = map.get(key);
+            if (null == result)
+            {
+                map.put(key, Arrays.asList(str));
+            } else
+            {
+                List<String> tempList = new ArrayList<>();
+                for (String s : result)
+                {
+                    tempList.add(s);
+                }
+                tempList.add(str);
+                map.put(key, tempList);
+            }
+        }
+        return new ArrayList<>(map.values());
+    }
+```
+
+
+
+#### 最长连续序列
+
+- 题目
+
+  - 给定一个未排序的整数数组 `nums` ，找出数字连续的最长序列（不要求序列元素在原数组中连续）的长度。请你设计并实现时间复杂度为 `O(n)` 的算法解决此问题。
+
+  - **示例 1：**
+
+    ```
+    输入：nums = [100,4,200,1,3,2]
+    输出：4
+    解释：最长数字连续序列是 [1, 2, 3, 4]。它的长度为 4。
+    ```
+
+```java
+ /*
+        题目：最长连续序列，使用时间复杂度为O(n)来实现
+            输入：nums = [100,4,200,1,3,2]
+            输出：4
+            解释：最长数字连续序列是 [1, 2, 3, 4]。它的长度为 4
+            思路：
+            1.如果采用排序算法来做，那么最快也得是N*LogN
+            2.采用HashSet来存储数据，可以过滤重复数据；
+            3.遍历原数组，看数据是否在HashSet里面
+            3.1 在的话，把当前值加1，再check是否值还是里面
+    */
+    public int longestConsecutive(int[] nums)
+    {
+        //统计连续数字的个数
+        int count = 1;
+        //统计最大连续的个数
+        int max = 0;
+        //数据存储
+        Set<Integer> set = new HashSet<>();
+        for (int num : nums)
+        {
+            set.add(num);
+        }
+
+        //遍历原数组，统计最大连续序列
+        for (int num : nums)
+        {
+            //只有当前面的num -1值不存在的时候才回去找num，不然就浪费了查找次数
+            if (!set.contains(num - 1))
+            {
+                while (set.contains(++num))
+                {
+                    count++;
+                }
+                if (max <= count)
+                {
+                    max = count;
+                }
+            }
+            count = 1;
+        }
+        return max;
+    }
+```
+
+
+
+### 双指针
+
+#### 移动零
+
+- 题目
+
+  - 给定一个数组 `nums`，编写一个函数将所有 `0` 移动到数组的末尾，同时保持非零元素的相对顺序。
+
+  - **示例 1:**
+
+    ```
+    输入: nums = [0,1,0,3,12]
+    输出: [1,3,12,0,0]
+    ```
+
+```Java
+ /*
+        题目：给定一个数组 nums，编写一个函数将所有 0 移动到数组的末尾，同时保持非零元素的相对顺序。
+        输入: nums = [0,1,0,3,12]
+        输出: [1,3,12,0,0]
+
+        思路：
+        1. 利用双指针i & j 来实现
+        2. i从0位置，j从1位置开始比较
+        2.1 先让i找到0的位置
+        2.2 如果i是0，j不是0那么交换值，i+1；重新跑2逻辑直到i&&j都到达数组长度
+        2.3 如果i是0，j为0，那么i直接加1；j=i+1；重新run step 2
+    */
+    public void moveZeroes(int[] nums)
+    {
+        if (null == nums || nums.length == 0)
+        {
+            return;
+        }
+
+        for (int i = 0; i < nums.length; i++)
+        {
+            //先找到0位置
+            if (nums[i] != 0)
+            {
+                continue;
+            }
+
+            //找到0位置了
+            int j = i + 1;
+            while (j < nums.length && nums[j] == 0)
+            {
+                j++;
+            }
+            if (j < nums.length)
+            {
+                //交换i 和 j位置的值
+                int temp = Integer.MIN_VALUE;
+                temp = nums[j];
+                nums[j] = nums[i];
+                nums[i] = temp;
+            }
+        }
+    }
+```
+
+
+
+#### 盛水最多的容器
+
+#### 三数之和
