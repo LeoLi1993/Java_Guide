@@ -50,6 +50,9 @@ Algorithm
         - [最长连续序列](#最长连续序列)
     - [双指针](#双指针)
         - [移动零](#移动零)
+        - [盛水最多的容器](#盛水最多的容器)
+        - [三数之和](#三数之和)
+        - [接雨水](#接雨水)
 
 ## 基础知识
 
@@ -3634,6 +3637,38 @@ public class RemoveDuplicateNumber
     解释：因为 nums[0] + nums[1] == 9 ，返回 [0, 1] 。
     ```
 
+```java
+/*
+        题目：两数求和
+            思路：
+            1. 两次for循环遍历数组能够实现功能，但是时间复杂度为O(n^2)
+            2. 借用Hash表，Hash表的key是数组的值，value是下标
+            2.1 先把数存一份到Hash表中
+            2.2 遍历数组，判断Hash表中是否有target - currentValue的key，有就获取到key对应的value进行返回，没有就继续遍历数组。
+            2.3 通过使用多余的空间来换取时间
+    */
+    public int[] towSum(int[] nums, int target)
+    {
+        int[] result = new int[2];
+        Map<Integer, Integer> map = new HashMap<>();
+        for (int i = 0; i < nums.length; i++)
+        {
+            int value = target - nums[i];
+            if (map.containsKey(value))
+            {
+                result[0] = map.get(value);
+                result[1] = i;
+            } else
+            {
+                map.put(nums[i], i);
+            }
+        }
+        return result;
+    }
+```
+
+
+
 #### 字母异位分组
 
 - 题目
@@ -3767,7 +3802,7 @@ public class RemoveDuplicateNumber
     输出: [1,3,12,0,0]
     ```
 
-```Java
+```java
  /*
         题目：给定一个数组 nums，编写一个函数将所有 0 移动到数组的末尾，同时保持非零元素的相对顺序。
         输入: nums = [0,1,0,3,12]
@@ -3817,4 +3852,246 @@ public class RemoveDuplicateNumber
 
 #### 盛水最多的容器
 
+- 题目
+  - 给定一个长度为 `n` 的整数数组 `height` 。有 `n` 条垂线，第 `i` 条线的两个端点是 `(i, 0)` 和 `(i, height[i])` 。给定一个长度为 `n` 的整数数组 `height` 。有 `n` 条垂线，第 `i` 条线的两个端点是 `(i, 0)` 和 `(i, height[i])` 。返回容器可以储存的最大水量。
+  - ![](./resource/img/doublePointer/maximumWaterSquare.png)
+
+```java
+	/*
+        思路：
+            最大水量 = 高度 * 宽度
+            而高度取决于最低的那块挡板
+            1.通过i & j双指针来实现
+                1.1 i从0位置开始往后走，j从最后一个位置往前走，直到i = j停止
+                1.2 i位置的值和j位置的值比较，取最小的值然后乘以他们之间的距离，最终结果存储到临时的squre里面
+                1.3 i & j的值谁更小就往前走，不停的计算更新square，直到跳出循环，获取到最大square值进行返回
+     */
+    public int maxArea(int[] height)
+    {
+        //临时面积
+        int tempSquare = 0;
+        //最大面积
+        int maxSquare = 0;
+        if (null == height || height.length == 0)
+        {
+            return maxSquare;
+        }
+
+        int i = 0;
+        int j = height.length - 1;
+
+        while (i < j)
+        {
+            if (height[i] < height[j])
+            {
+                tempSquare = height[i] * (j - i);
+                i++;
+            } else
+            {
+                tempSquare = height[j] * (j - i);
+                j--;
+            }
+
+            if (tempSquare > maxSquare)
+            {
+                maxSquare = tempSquare;
+            }
+        }
+
+        return maxSquare;
+    }
+```
+
+
+
 #### 三数之和
+
+- 题目
+
+  - 给你一个整数数组 `nums` ，判断是否存在三元组 `[nums[i], nums[j], nums[k]]` 满足 `i != j`、`i != k` 且 `j != k` ，同时还满足 `nums[i] + nums[j] + nums[k] == 0` 。请你返回所有和为 `0` 且不重复的三元组。
+
+  - 答案中不可以包含重复的三元组
+
+  - **示例 1：**
+
+    ```
+    输入：nums = [-1,0,1,2,-1,-4]
+    输出：[[-1,-1,2],[-1,0,1]]
+    解释：
+    nums[0] + nums[1] + nums[2] = (-1) + 0 + 1 = 0 。
+    nums[1] + nums[2] + nums[4] = 0 + 1 + (-1) = 0 。
+    nums[0] + nums[3] + nums[4] = (-1) + 2 + (-1) = 0 。
+    不同的三元组是 [-1,0,1] 和 [-1,-1,2] 。
+    注意，输出的顺序和三元组的顺序并不重要。
+    ```
+
+```java
+/*
+        题目：三数之和
+            思路：
+                1.排序
+                2.双指针法：
+                    2.1 nums[i] + nums[left] + nums[right] > 0; 说明数据right位置的数据偏大，right往左移动
+                    2.1 nums[i] + nums[left] + nums[right] 《 0; 说明数据left位置的数据偏大，left往右移动
+                    2.2 直到left = right 停止
+                3.数据去重
+                    3.1 i位置去重 nums[i] == nums[i-1] continue;
+                    3.2 left位置去重 nums[left] == nums[left + 1] left++;
+                    3.3 right位置去重 nums[right] == nums[right - 1] right--;
+
+     */
+    public List<List<Integer>> threeSum(int[] nums)
+    {
+        List<List<Integer>> resultList = new ArrayList<>();
+
+        if (null == nums || nums.length == 0)
+        {
+            return null;
+        }
+
+        //排序
+        Arrays.sort(nums);
+
+        //i排好序之后只能走到倒数第三个位置
+        for (int i = 0; i < nums.length - 2; i++)
+        {
+            if (nums[i] > 0)
+            {
+                return resultList;
+            }
+
+            int left = i + 1;
+            int right = nums.length - 1;
+
+            //对i位置去重
+            if (i > 0 && nums[i] == nums[i - 1])
+            {
+                continue;
+            }
+
+            while (left < right)
+            {
+                if (nums[i] + nums[left] + nums[right] > 0)
+                {
+                    right--;
+                } else if (nums[i] + nums[left] + nums[right] < 0)
+                {
+                    left++;
+                } else
+                {
+                    List<Integer> result = Arrays.asList(nums[i], nums[left], nums[right]);
+                    resultList.add(result);
+
+                    //left去重
+                    while (left < right && nums[left] == nums[left + 1])
+                    {
+                        left++;
+                    }
+                    //right去重
+                    while (left < right && nums[right] == nums[right - 1])
+                    {
+                        right--;
+                    }
+                    //继续往下找，看left和right还有没有符合条件的
+                    left++;
+                    right--;
+                }
+            }
+        }
+        return resultList;
+    }
+```
+
+
+
+#### 接雨水
+
+- 题目
+  - ![](./resource/img/doublePointer/getWater.png)
+
+```
+/*
+        题目：接雨水问题
+        思路1：暴力解法
+            1.计算当前节点i能接到多少雨水
+                1.1 取决于max(height[0]~height[i-1], height[i+1]~height[length-1]) -> maxValue，max(0, maxValue-height[i])
+            2.时间复杂度O(n^2)
+     
+    public int trap(int[] height)
+    {
+        if (null == height || 0 == height.length)
+        {
+            return 0;
+        }
+
+        //累计所有节点高度的和
+        int total = 0;
+        for (int i = 0; i < height.length; i++)
+        {
+            int leftMax = 0;
+            int rightMax = 0;
+            int currentHeight = height[i];
+            //找左边最大值
+            for (int j = 0; j < i; j++)
+            {
+                leftMax = Math.max(height[j], leftMax);
+            }
+
+            //找右边最大值
+            for (int k = i + 1; k < height.length; k++)
+            {
+                rightMax = Math.max(height[k], rightMax);
+            }
+            total += Math.max(0, Math.min(leftMax, rightMax) - currentHeight);
+        }
+        return total;
+    }
+    */
+
+    /*
+        接雨水问题
+        思路：双指针法
+            1.左右指针，left,right分别从1位置和height.length-2开始；核心就是计算left 和 right位置的水量，因为最左和最又水量都是0，因此分别从1和height.length-2计算水量
+            2.leftMax从height[0]开始,之后不断地和height[left]比较，谁更大就更新成leftMax
+            3.rightMax从height[height.length - 2]开始,之后不断地和height[right]比较，谁更大就更新成leftMax
+            4.当leftMax <= rightMax 谁小结算谁; 水总量total = Math.max(0, leftMax - height[left]); left++;
+            5.当rightMax < leftMax 谁小结算谁; 水总量total = Math.max(0, rightMax - height[right]); right++;
+            6.直到left = right
+     */
+
+    public int trap(int[] height)
+    {
+        if (null == height || 0 == height.length)
+        {
+            return 0;
+        }
+
+        //累计所有节点高度的和
+        int total = 0;
+
+        int left = 1;
+        int right = height.length - 2;
+        int leftMax = height[0];
+        int rightMax = height[height.length - 1];
+
+
+        while (left <= right)
+        {
+            //结算左边雨水量
+            if (leftMax <= rightMax)
+            {
+                total += Math.max(0, leftMax - height[left]);
+                //更新左边最大值
+                leftMax = Math.max(height[left++], leftMax);
+            } else
+            {
+                //结算右边雨水量
+                total += Math.max(0, rightMax - height[right]);
+                //更新右边最大值
+                rightMax = Math.max(height[right--], rightMax);
+            }
+        }
+        return total;
+    }
+```
+
